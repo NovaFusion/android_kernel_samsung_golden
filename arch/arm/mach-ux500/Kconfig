@@ -1,0 +1,334 @@
+if ARCH_U8500
+
+config UX500_SOC_COMMON
+	bool
+	default y
+	select ARM_GIC
+	select NOMADIK_GPIO
+	select ARM_ERRATA_753970
+	select ARM_ERRATA_754322
+	select ARM_ERRATA_764369
+	select SYS_SOC
+	select HAS_MTU
+
+config UX500_SOC_DBX500
+	depends on UX500_SOC_DB5500 || UX500_SOC_DB8500
+	bool
+
+menu "Ux500 SoC"
+
+config UX500_SOC_DB5500
+	bool "DB5500"
+	select UX500_SOC_DBX500
+
+config UX500_SOC_DB8500
+	bool "DB8500"
+	select UX500_SOC_DBX500
+
+endmenu
+
+menu "Ux500 target platform (boards)"
+
+config MACH_U8500
+	bool "U8500 Development platform"
+	depends on UX500_SOC_DB8500
+	help
+	  Include support for the mop500 development platform.
+
+config MACH_SAMSUNG_U8500
+	bool "U8500 based Samsung HW"
+	select MACH_SAMSUNG_UX500
+	help
+	  Supports Samsung boards based on U8500 chipset.
+	  Select specific board below in "Samsung U8500 HW" option.
+config MACH_HREFV60
+       bool "U85000 Development platform, HREFv60 version"
+       depends on UX500_SOC_DB8500
+	select MACH_U8500
+       help
+         Include support for the HREFv60 new development platform.
+
+config MACH_U8520
+       bool "U8520 Development platform"
+       depends on UX500_SOC_DB8500
+	select MACH_U8500
+       help
+         Include support for the 8520 development platform.
+
+config MACH_SNOWBALL
+	bool "U8500 Snowball platform"
+	depends on UX500_SOC_DB8500
+	select MACH_U8500
+	help
+	  Include support for the snowball development platform.
+
+config MACH_CCU9540
+	bool "9540 Development platform"
+	depends on UX500_SOC_DB8500
+	select MACH_U8500
+	help
+	 Include support for the ccu9540 development platform.
+
+config MACH_U5500
+	bool "U5500 Development platform"
+	depends on UX500_SOC_DB5500
+	help
+	  Include support for the U5500 development platform.
+
+config MACH_U9540
+	bool "U9540 Development platform"
+	depends on UX500_SOC_DB8500
+	select MACH_U8500
+	help
+	  Include support for the U9540 development platform.
+endmenu
+
+if MACH_SAMSUNG_UX500
+menu "Samsung Ux500 Options"
+
+config CONNECTOR_SAMSUNG_3PI
+	tristate "3 Pole Interface connector support"
+	default n
+	help
+		Say Y here if you want to use a 3PI headset connector.
+endmenu
+endif
+config MACH_SAMSUNG_UX500
+	bool
+choice
+	prompt "Ux500 UIB Keylayout"
+	default KEYLAYOUT_LAYOUT1
+
+config KEYLAYOUT_LAYOUT1
+	bool "UIB Keylayout 1; for generic users"
+	help
+	  Supported keylayout for some numerics, power/call buttons,
+	  volume control etc
+
+config KEYLAYOUT_LAYOUT2
+	bool "UIB Keylayout 2; for connectivity users"
+	help
+	  Supports keylayout numerics 0-9, left/right/up/down/back/
+	  enter keys and special character "."(dot)
+
+endchoice
+if MACH_SAMSUNG_U8500
+choice
+	prompt "Samsung U8500 HW"
+config MACH_GAVINI
+	bool "Gavini"
+	help
+	  Supports Gavini boards
+config MACH_JANICE
+	bool "Janice"
+	help
+	  Supports Janice boards
+config MACH_JANICE_KOR
+	bool "Janice_kor"
+	help
+	  Supports Janice_kor boards
+config MACH_JANICE_CHN
+	bool "Janice_chn"
+	help
+	  Supports Chinese features of Janice_chn boards. This features
+	  will be used in Power off alarm and OVP UI concept for Chinese
+	  models.
+config MACH_CODINA
+	bool "Codina"
+	help
+	  Supports Codina boards
+config MACH_SEC_KYLE
+	bool "Kyle"
+	help
+	  Supports Kyle board and variants
+config MACH_SEC_GOLDEN
+	bool "Golden"
+	help
+	  Supports Golden boards
+endchoice
+menu "Samsung Product Features"
+config SAMSUNG_PRODUCT_SHIP
+        bool "set up for product for shipping"
+endmenu
+endif
+
+choice
+	prompt "DBx500 sched_clock"
+
+config DBX500_SCHED_CLOCK_PRCMU
+	bool "PRCMU Timer sched_clock"
+	depends on CLKSRC_DBX500_PRCMU
+	select CLKSRC_DBX500_PRCMU_SCHED_CLOCK
+	help
+	  Use the always on PRCMU Timer as sched_clock
+
+config DB5500_MTIMER_SCHED_CLOCK
+	bool "MTIMER sched_clock"
+	depends on CLKSRC_DB5500_MTIMER
+	select CLKSRC_DB5500_MTIMER_SCHED_CLOCK
+	help
+	  Use the always on MTIMER as sched_clock
+
+config DBX500_MTU_SCHED_CLOCK
+	bool "MTU sched_clock"
+	depends on HAS_MTU
+	select NOMADIK_MTU_SCHED_CLOCK
+	help
+	  Use the Multi Timer Unit as the sched_clock.
+
+endchoice
+
+config UX500_DEBUG_UART
+	int "Ux500 UART to use for low-level debug"
+	default 2
+	help
+	  Choose the UART on which kernel low-level debug messages should be
+	  output.
+
+config UX500_GPIO_KEYS
+        bool "Use gpio-keys for proximity and hal sensors"
+        depends on KEYBOARD_GPIO
+        help
+	  Add proximity and hal sensors as a gpio keyboard.
+
+config U5500_MODEM_IRQ
+	bool "Modem IRQ support"
+	depends on UX500_SOC_DB5500
+	default y
+	help
+	  Add support for handling IRQ:s from modem side
+
+config DBX500_PRCMU_DEBUG
+	bool "DBX500 PRCMU debug"
+	depends on ((MFD_DB5500_PRCMU || MFD_DB8500_PRCMU || MFD_DBX540_PRCMU) && DEBUG_FS)
+	help
+	  Add support for PRCMU debug
+
+config TEE_UX500
+	bool "Trusted Execution Environment (TEE) ux500 hardware support"
+	depends on TEE_SUPPORT && HWMEM
+	default y
+	help
+	  Adds TEE hardware support for ux500 platforms.
+
+config TEE_SVP
+	bool "Trusted Execution Environment (TEE) ux500 SVP support"
+	depends on TEE_SUPPORT && UX500_SVP
+	default y
+	help
+	  Adds TEE support for SVP in ux500 platforms.
+
+config DB8500_MLOADER
+	bool "Modem firmware upload/download support"
+	depends on UX500_SOC_DB8500
+	select DBX500_MLOADER
+	help
+	  Adds Modem firmware upload/download support to DB8500.
+
+config U5500_MLOADER
+	bool "mLoader, mem config from kernel boot args exported to sysfs"
+	depends on UX500_SOC_DB5500
+	help
+	  Link between boot args and user space program that loads the modem ELF.
+	  This is used to expose the modem parameters using sysfs interface.
+
+config UX500_DEBUG_HWREG
+	bool "Debug hardware registers from userspace"
+	depends on (DEBUG_FS && UX500_SOC_DB8500)
+	help
+	  Adds various debug files to access registers.
+	  This should never ever be used for anything else than debugging.
+
+config UX500_DEBUG_NO_LAUTERBACH
+       bool "Disable clocks needed for Lauterbach debugging"
+       help
+	  Disable clocks needed for Lauterbach debugging at boot.
+	  If yes, you will reduce the power consumption.
+
+config UX500_L2X0_PREFETCH_CTRL
+	bool "PL310 prefetch control"
+	depends on (UX500_SOC_DB8500 || UX500_SOC_DB5500) && \
+			(TEE_UX500 && CACHE_L2X0)
+	default y
+	help
+	  Adds interface to control instruction and data prefetch.
+	  Communication with Trustzone is done through TEE driver.
+
+config UX500_DB_DUMP
+	bool "DBx500 register dump on crash"
+	depends on (UX500_SOC_DB8500 || UX500_SOC_DB5500)
+	default y
+	help
+	  Reads specific DBx500 register in case of kernel crash
+	  and saves it.
+
+config UX500_DEBUG_LAST_IO
+	bool "Save address of last IO operation"
+	depends on (UX500_SOC_DB8500 || UX500_SOC_DB5500)
+	default n
+	help
+	  In DBx500 SOCs, processor bus hangs if an IO access is done on a
+	  peripheral that is not powered or clocked. Enable this option to debug
+	  such problems. It saves the address on which the last IO operation was
+	  done and the program-counter value from where the IO operation was
+	  done. These values are saved in non-cacheable memory so that they are
+	  included in kernel dump.
+
+config RTC_HCTOHC
+	bool "Set 2nd RTC from 1st RTC at startup and resume"
+	depends on (UX500_SOC_DB8500 && RTC_HCTOSYS && RTC_DRV_PL031)
+	default y
+	help
+	  If you say yes here, the 2nd RTC will be set using
+	  the value read from the 1st RTC device. This is useful when
+	  the 1st RTC is battery backed but not the 2nd.
+
+config UX500_HW_OBSERVER
+	bool "Add debug IF for HW Obserevr"
+	depends on (DEBUG_FS || UX500_SOC_DB8500)
+	default y
+	help
+	  Add interface to configure Hw Observer lines.
+
+config U8500_CUSTOM_RF
+	bool "Custom RF for 8500"
+	help
+	  Say Y here if the board does not use 8500 RF to provide sysclk.  This
+	  will disable the use of the SWAT protocol on the sysclkreqout line.
+
+config BT_BCM4330
+	bool "Enable BCM4330 driver"
+	default n
+	help
+	  Adds BCM4334 RFKILL driver for Broadcom BCM4330 chipset
+
+config BT_BCM4334
+	bool "Enable BCM4334 driver"
+	default n
+	help
+	  Adds BCM4334 RFKILL driver for Broadcom BCM4334 chipset
+
+config BT_MGMT
+       bool "Bluetooth Mgmt"
+       default n
+ 	help
+	  This is for bluetooth mgmt
+
+config ANDROID_WIP
+        bool "work in progress hacks for android"
+        default n
+        help
+          This enables 'work in progress' hacks for android issues.
+          Please remove it later.
+
+config AB8505_SMPL
+        bool "SMPL (Sudden Moment Power Loss) feature"
+        default n
+        help
+          This enables 'Sudden Moment Power Loss' feature.
+
+source "arch/arm/mach-ux500/Kconfig-arch"
+source "arch/arm/mach-ux500/pm/Kconfig"
+source "arch/arm/mach-ux500/test/Kconfig"
+
+endif

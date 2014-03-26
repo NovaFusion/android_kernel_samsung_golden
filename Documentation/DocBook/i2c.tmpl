@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+	"http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd" []>
+
+<book id="I2C">
+ <bookinfo>
+  <title>I2C</title>
+
+  <authorgroup>
+   <author>
+    <firstname>Srinidhi</firstname>
+    <surname>Kasagar</surname>
+    <affiliation>
+     <address>
+      <email>srinidhi.kasagar@stericsson.com</email>
+     </address>
+    </affiliation>
+   </author>
+   <author>
+    <firstname>Sachin</firstname>
+    <surname>Verma</surname>
+    <affiliation>
+     <address>
+      <email>sachin.verma@st.com</email>
+     </address>
+    </affiliation>
+   </author>
+   </authorgroup>
+
+  <copyright>
+   <year>2009-2010</year>
+   <holder>ST-Ericsson</holder>
+  </copyright>
+
+  <subjectset>
+    <subject>
+      <subjectterm>Linux standard functions</subjectterm>
+    </subject>
+  </subjectset>
+
+  <legalnotice>
+   <!-- Do NOT remove the legal notice below -->
+
+  <para>
+     This documentation is free software; you can redistribute
+     it and/or modify it under the terms of the GNU General Public
+     License as published by the Free Software Foundation; either
+     version 2 of the License, or (at your option) any later
+     version.
+   </para>
+
+   <para>
+     This program is distributed in the hope that it will be
+     useful, but WITHOUT ANY WARRANTY; without even the implied
+     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+     See the GNU General Public License for more details.
+   </para>
+
+   <para>
+     You should have received a copy of the GNU General Public
+     License along with this program; if not, write to the Free
+     Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+     MA 02111-1307 USA
+   </para>
+
+   <para>
+     For more details see the file COPYING in the source
+     distribution of Linux.
+   </para>
+  </legalnotice>
+ </bookinfo>
+
+<toc></toc>
+  <chapter id="intro">
+    <title>Introduction</title>
+    <para>
+	This Documentation describes the API's provided by the I2C controller Driver.
+	Since this driver registers the transferfunction with kernel framework, there
+	are only private functions in this I2C bus driver. This driver currently
+	works only in master mode and does 7 bit adderssing only. There is no support
+	for 10 bit addressing. The driver currently supports standard mode (100KHz)
+	and Fast mode (400KHz) operation.
+    </para>
+  </chapter>
+  <chapter id="bugs">
+     <title>Known Bugs And Assumptions</title>
+  <para>
+     <variablelist>
+     <varlistentry>
+       <term>None</term>
+       <listitem>
+         <para>
+		None.
+           </para>
+       </listitem>
+     </varlistentry>
+     </variablelist>
+  </para>
+  </chapter>
+
+  <chapter id="pubfunctions">
+     <title>Public Functions Provided</title>
+     <para>
+	Not Applicable
+     </para>
+  </chapter>
+
+  <chapter id="private">
+    <title>Private Functions</title>
+    <para>
+	This Section lists the functions used internally  by the I2C controller driver.
+    </para>
+!Idrivers/i2c/busses/i2c-nomadik.c
+  </chapter>
+
+</book>

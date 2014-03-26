@@ -1,0 +1,6 @@
+
+config DB8500_PWR_TEST
+	bool "Power usage module test"
+	depends on (UX500_SOC_DB8500 && DEBUG_FS && REGULATOR_AB8500_DEBUG && UX500_SUSPEND_DBG)
+	help
+	  Add power module tests for idle and suspend

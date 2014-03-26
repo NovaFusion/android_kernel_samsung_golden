@@ -1,0 +1,10 @@
+TODO:
+        - IBSS: Not implemented (3-10 m*d).
+        - 11n: Almost done. WSM API upgrade is required fo finish implementation. (2-3 m*d).
+        - 11n: verification (??? m*d Resources? WLAN RF lab? 11n sniffers
+          availability? Bring up of the test equipment?).
+        - memory leakage verification and proper cleanup: not done (1-3 m*d).
+        - AP (hot-spot) mode: Implemented, some problems with WEP104/WPA/WPA2 security.
+          FW bug? To be investigated.
+        - U-APSD configuration (0.5-1 m*d).
+        - Cleanup of debug printouts (1 m*d).

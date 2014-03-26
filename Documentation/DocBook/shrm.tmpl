@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+	"http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd" []>
+
+<book id="SHRM">
+ <bookinfo>
+  <title>Shared Memory</title>
+  <authorgroup>
+   <author>
+    <firstname>Biju</firstname>
+    <surname>Das</surname>
+    <affiliation>
+     <address>
+      <email>biju.das@stericsson.com</email>
+     </address>
+    </affiliation>
+   </author>
+   <author>
+    <firstname>Kumar</firstname>
+    <surname>Sanghvi</surname>
+    <affiliation>
+     <address>
+      <email>kumar.sanghvi@stericsson.com</email>
+     </address>
+    </affiliation>
+   </author>
+   <author>
+    <firstname>Arun</firstname>
+    <surname>Murthy</surname>
+    <affiliation>
+     <address>
+      <email>arun.murthy@stericsson.com</email>
+     </address>
+    </affiliation>
+   </author>
+   </authorgroup>
+
+  <copyright>
+   <year>2009-2010</year>
+   <holder>ST-Ericsson</holder>
+  </copyright>
+
+  <subjectset>
+    <subject>
+      <subjectterm>Linux standard functions</subjectterm>
+    </subject>
+  </subjectset>
+
+  <legalnotice>
+   <!-- Do NOT remove the legal notice below -->
+   <para>
+     Licence terms: GNU General Public Licence (GPL) version 2.
+   </para>
+  </legalnotice>
+ </bookinfo>
+
+<toc></toc>
+  <chapter id="intro">
+    <title>Introduction</title>
+    <para>
+	This Documentation describes the ST-Ericsson's adaptation on protocol used for CMT/APE communication when SHaRedMemory is used as IPC link.
+    </para>
+  </chapter>
+
+  <chapter id="design">
+    <title>Design</title>
+    <para>
+	The APE consists Cortex A9 dual core SMP, a multimedia DSP and PRCMU. Modem consists of 2 Cortex R4 ARM processor.
+	The exchange of messages between CMT(Cellular Mobile Terminal) and APE includes copying the data to a shared area DDR. This region is accessible by both CMT and APE. The design includes 2 channels common and audio. Common channel is used for exchanging ISI, RPC and SECURITY messages. Audio channel is used for exchanging AUDIO messages. Each channel consists of 2 FIFO. One FIFO for sending message from CMT to APE and other from APE to CMT. Each of these FIFO have write and read pointer shared between APE and CMT. Writer pointer is updated on copying the message to FIFO and reader will read the messages from the read pointer upto the writer pointer. Writer and reader notifications are used to notify the completion of read/write operation(seperate for APE and CMT). Driver includes 4 queues. Once the messages are sent from CMT to APE it resides in the FIFO and then copied to one of the 4 queues based on the message type(ISI, RPC, AUDIO, SECURITY) and then the net/char device interface fetches this message from the queue and copies to the user space buffer.
+    </para>
+  </chapter>
+
+  <chapter id="concepts">
+    <title>Concepts</title>
+    <para>
+	The user space application sends ISI/RPC/AUDIO/SECURITY messages. ISI is sent through the phonet to shrm driver. For achieving this there are 2 interfaces to the shrm driver. Net interface used for exchanging the ISI message and char interface for RPC, AUDIO and SECURITY messages. On receiving any of these messages from the user space application, it is copied to a memory in kernel space. From here it is then copied to respective FIFO from where the CMT reads the message.
+	CMT(Cellular Mobile Terminal) writes messages to the respective FIFO and thereafter to respective queue. The net/char device copies this message from the queue to the user space buffer.
+    </para>
+  </chapter>
+
+  <chapter id="bugs">
+     <title>Known Bugs And Assumptions</title>
+  <para>
+     <variablelist>
+     <varlistentry>
+       <term>None</term>
+       <listitem>
+         <para>
+		Assumptions
+		1. ApeShmFifo#0 is of 128kB in size. As this is used for transmission except CS audio call data. Expected message size is 1.5kB with a max of 16kB.
+		2. ApeShmFifo#1 is of 4kB in size. This is used for transmission of CS audio call data. Expected message size is 24kb.
+		3. CmtShmFifo#0 is of 128kB in size. As this is used for transmission except CS audio call data. Expected message size is 1.5kB with a max of 16kB.
+		4. CmtShmFifo#1 is of 4kB in size. This is used for transmission of CS audio call data. Expected message size is 24kb.
+		The total size of the FIFO is 264 kB.
+         </para>
+       </listitem>
+     </varlistentry>
+     </variablelist>
+  </para>
+  </chapter>
+
+  <chapter id="pubfunctions">
+     <title>Public Functions Provided</title>
+     <para>
+	This Section lists the API's provided by the SHRM driver to phonet drivers.
+     </para>
+!Edrivers/modem/shrm/shrm_fifo.c
+     <para>
+	This Section lists the API's provided by the SHRM driver used in transmission of RPC, AUDIO and SECURITY messages.
+     </para>
+!Edrivers/char/shrm_char.c
+
+  </chapter>
+
+  <chapter id="private">
+    <title>Private Functions</title>
+    <para>
+	This Section lists the functions used internally by the SHRM driver to implement FIFO management. It physically reads/writes data to/from memory.
+    </para>
+!Idrivers/modem/shrm/shrm_fifo.c
+    <para>
+	This Section lists the functions used internally by the SHRM driver to implement the SHM protocol and handle all interrupt callback.
+    </para>
+!Idrivers/modem/shrm/shrm_protocol.c
+    <para>
+	This Section lists the functions used internally by the SHRM driver to implement Modem-Host communication L1 interface specifications.
+    </para>
+!Idrivers/modem/shrm/modem_shrm_driver.c
+  </chapter>
+
+  <chapter id="Other">
+    <title>Other Data Structures</title>
+    <para>
+	This Section lists some of the Data structure used by the SHRM driver.
+    </para>
+!Iinclude/linux/modem/shrm/shrm_driver.h
+!Iinclude/linux/modem/shrm/shrm_private.h
+  </chapter>
+</book>

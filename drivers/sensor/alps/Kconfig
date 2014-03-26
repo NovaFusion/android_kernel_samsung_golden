@@ -1,0 +1,67 @@
+#
+# Sensors core device.
+#
+config SENSORS_ALPS
+	bool "ALPS Sensor"
+	default n
+	help
+	 This option enables alps sensors
+
+config SENSORS_ALPS_CORE
+	depends on SENSORS_ALPS
+	tristate "sensors core for alps sensors"
+	default n
+	help
+	  Say Y here to enable debugging messages for power supply class
+	  and drivers.
+
+config SENSORS_ACCEL
+	depends on SENSORS_ALPS
+	bool "Use ALPS framework for Accelerometer"
+	default n
+	help
+	 This option enables accelerometer to use alps framework
+
+config SENSORS_KXDM
+	depends on I2C && SENSORS_ACCEL
+	tristate "k2dm/k3dm STM accel"
+	default n
+	help
+	  This option enables STM k2dm/k3dm accel driver
+
+config SENSORS_HSCD
+	depends on I2C && SENSORS_ALPS
+	tristate "hscd alps mag"
+	default n
+	help
+	  This option enables hscd alps mag driver
+
+config SENSORS_GOLDEN
+	depends on I2C && SENSORS_ALPS
+	tristate "hscd alps mag"
+	default n
+	help
+	  This option enables hscd alps mag driver
+	  
+config SENSORS_HSCDTD008A
+	depends on I2C && SENSORS_ALPS
+	tristate "hscd alps HSCDTD008A"
+	default n
+	help
+	  This option enables hscd alps HSCDTD008A mag driver
+
+config SENSORS_BMA254
+	tristate "BMA254 Acceleration Sensor Driver"
+	depends on I2C
+	default n
+	help
+	  If you say yes here you get support for Bosch-Sensortec's
+	  BMA254 Acceleration Sensor
+
+config BMA254_SMART_ALERT
+	tristate "BMA254 Acceleration Sensor Driver"
+	depends on I2C
+	default n
+	help
+	This option enables smart alert
+

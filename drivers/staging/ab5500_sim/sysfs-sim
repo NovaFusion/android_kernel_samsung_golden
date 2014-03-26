@@ -1,0 +1,83 @@
+What:		/sys/devices/platform/ab5500-core.0/ab5500-sim.4/
+Date:		June 2011
+KernelVersion:	2.6.35
+Contact:	Bibek Basu <bibek.basu@stericsson.com>
+Description:
+		The /sys/devices/.../ab5500-sim.4 directory contains attributes
+		allowing the user space to check and configure ab5500 sim level
+		shifter interface caracteristics for communication to SIM card
+
+What:		/sys/devices/.../enable_pullup
+Date:		June 2011
+KernelVersion:	2.6.35
+Contact:	Bibek Basu <bibek.basu@stericsson.com>
+Description:
+		The /sys/devices/.../ab5500-sim.4/enable_pullup attribute allows
+		the user space to configure if internal pull up in SIMIO lines
+		has to be enabled or disabled. For enabling write 1 to the file
+		and 0 for disabling
+
+
+What:		/sys/devices/.../dat_pullup
+Date:		June 2011
+KernelVersion:	2.6.35
+Contact:	Bibek Basu <bibek.basu@stericsson.com>
+Description:
+		The /sys/devices/.../ab5500-sim.4/dat_pullup attribute allows
+		the user space to configure the resistance value for internal
+		pull up in SIMIO lines. Following value can be written on the file
+		0	SIM_DAT pull-up disabled
+		1	SIM_DAT pull-up 4kOhm
+		2	SIM_DAT pull-up 5kOhm
+		3	SIM_DAT pull-up 6kOhm
+		4	SIM_DAT pull-up 7kOhm
+		5	SIM_DAT pull-up 8kOhm
+		6	SIM_DAT pull-up 9kOhm
+		7	SIM_DAT pull-up 10kOhm
+
+What:		/sys/devices/.../mode_sel
+Date:		June 2011
+KernelVersion:	2.6.35
+Contact:	Bibek Basu <bibek.basu@stericsson.com>
+Description:
+		The /sys/devices/.../ab5500-sim.4/mode_sel attribute allows
+		the user space to configure the mode at which the level shifter
+		will work. Following value can be written on the file
+		0	TG mode and LI mode off
+		1	TG mode on
+		2	LI mode on
+		3	TG mode and LI mode off
+
+What:		/sys/devices/.../load_sel
+Date:		June 2011
+KernelVersion:	2.6.35
+Contact:	Bibek Basu <bibek.basu@stericsson.com>
+Description:
+		The /sys/devices/.../ab5500-sim.4/load_sel attribute allows
+		the user space to configure the load on the USBUICC lines.
+		Following value can be written on the file.
+		0	Data line load < 21pF
+		1	Data line load 21-30pF
+
+What:		/sys/devices/.../weak_pulldforce
+Date:		June 2011
+KernelVersion:	2.6.35
+Contact:	Bibek Basu <bibek.basu@stericsson.com>
+Description:
+		The /sys/devices/.../ab5500-sim.4/weak_pulldforce attribute allows
+		the user space to configure the weak pull down on the USBUICC lines.
+		Following value can be written on the file.
+		0	USB-UICC data lines weak pull down active
+		1	USB-UICC data lines weak pull down not active
+
+What:		/sys/devices/.../simoff_int
+Date:		June 2011
+KernelVersion:	2.6.35
+Contact:	Bibek Basu <bibek.basu@stericsson.com>
+Description:
+		The /sys/devices/.../ab5500-sim.4/simoff_int attribute allows
+		the user space to poll this file and get notified in case a sim
+		hot swap has happened. a zero means sim extracetd and a one means
+		inserted.
+
+

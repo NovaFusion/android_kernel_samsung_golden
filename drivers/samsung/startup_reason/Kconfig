@@ -1,0 +1,13 @@
+config STARTUP_REASON 
+	bool "Startup reason"
+	default n
+	help
+	  Say Y here to enable startup class support. 
+
+config AB8500_STARTUP_REASON
+	depends on STARTUP_REASON
+	bool "Enables startup reason support for ab8500 chipset "
+	help
+	  Enables startup reason support for ab8500 chipset
+
+

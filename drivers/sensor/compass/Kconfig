@@ -1,0 +1,29 @@
+#
+# MAGNETIC Sensor Configuration
+#
+
+config COMPASS
+	bool "MAGNETIC Sensor"
+	default y
+	help
+	  This option enables magnetic sensors
+
+config INPUT_YAS_MAGNETOMETER
+	tristate "YAS Geomagnetic Sensor"
+	depends on I2C
+	
+config INPUT_YAS_MAGNETOMETER_POSITION
+	int "YAS Geomagnetic Sensor Mounting Position on Board"
+	depends on INPUT_YAS_MAGNETOMETER
+	default "0"
+	help
+	  Chip mounting position (pin 1).
+	    0: top, upper-left
+	    1: top, upper-right
+	    2: top, lower-right
+	    3: top, lower-left
+	    4: bottom, upper-left
+	    5: bottom, upper-right
+	    6: bottom, lower-right
+	    7: bottom, lower-left
+		

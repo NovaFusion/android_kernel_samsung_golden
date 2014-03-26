@@ -1,0 +1,72 @@
+#
+# CG2900
+#
+
+config CG2900
+	tristate "Support ST-Ericsson CG2900 main structure"
+	depends on NET && MFD_SUPPORT
+	help
+	  ST-Ericsson CG2900 Connectivity Combo controller main
+	  structure.
+	  Supports multiple functionalities muxed over a Bluetooth HCI H:4
+	  interface.
+	  CG2900 support Bluetooth, FM radio, and GPS.
+
+config CG2900_CHIP
+	tristate "Support CG2900 Connectivity controller"
+	depends on CG2900
+	help
+	  ST-Ericsson CG2900 Connectivity Controller chip handler.
+	  Contains chip handler performing driver initialization
+	  such as patchdownload and also instantiates the supported
+	  MFD devices.
+
+config STLC2690_CHIP
+	tristate "Support STLC2690 Connectivity controller"
+	depends on CG2900
+	help
+	  ST-Ericsson STLC2690 Connectivity Controller chip handler.
+	  Contains chip handler performing driver initialization
+	  such as patchdownload and also instantiates the supported
+	  MFD devices.
+
+config CG2900_UART
+	tristate "Support CG2900 UART transport"
+	depends on CG2900
+	select BT
+	select BT_HCIUART
+	help
+	  UART driver for ST-Ericsson CG2900 Connectivity Controller.
+	  Contains functions for setting baud rate and to transport
+	  data to and from the CG2900 controller over UART.
+	  Also handles low power handling for the CG2900 when using UART as
+	  transport.
+
+config CG2900_AUDIO
+	tristate "Support CG2900 audio interface"
+	depends on CG2900
+	help
+	  ST-Ericsson CG2900 Connectivity audio interface driver.
+	  Gives a module the ability to setup audio paths
+	  within the CG2900 controller.
+	  Supports both a normal function API and using character device
+	  from user space.
+
+config CG2900_TEST
+	tristate "Support CG2900 Test Char Device"
+	depends on CG2900
+	help
+	  ST-Ericsson CG2900 Test Character Device driver.
+	  Creates a character device which can be used by
+	  a test framework in user space to emulate a connected chip.
+	  Note that this is used to test the chip handler driver,
+	  not to test the connected chip.
+
+config BT_CG2900
+	tristate "ST-Ericsson CG2900 Bluetooth driver"
+	depends on CG2900 && BT
+	help
+	  Select if ST-Ericsson CG2900 Connectivity controller shall be used as
+	  Bluetooth controller for BlueZ.
+	  This driver registers to the Bluetooth stack and when opened,
+	  enables the CG2900 controller in a proper way.

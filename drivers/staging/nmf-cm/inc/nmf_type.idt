@@ -1,0 +1,63 @@
+/*
+ * Copyright (C) ST-Ericsson SA 2010
+ * Author: Jean-Philippe FASSINO <jean-philippe.fassino@stericsson.com> for ST-Ericsson.
+ * License terms:  GNU General Public License (GPL), version 2, with
+ * user space exemption described in the top-level COPYING file in
+ * the Linux kernel source tree.
+ */
+#ifndef NMF_TYPE_H_
+#define NMF_TYPE_H_
+
+/*!
+ * \defgroup NMF_COMMON_TYPE NMF Common Type
+ * \ingroup COMMON
+ */
+
+/*!
+ * \brief Error type returned by NMF  API routines
+ *
+ * Possible value describe by \ref t_nmf_errorDescription
+ *
+ * \ingroup NMF_COMMON_TYPE
+ */
+typedef t_sint8 t_nmf_error;
+
+/*!
+ * \brief Error type values
+ *
+ * \ingroup NMF_COMMON_TYPE
+ */
+typedef enum {
+    NMF_OK =                                 0,        //!< No error
+    NMF_INVALID_PARAMETER =                  -2,       //!< Invalid parameter
+    NMF_NO_MORE_MEMORY =                     -30,      //!< Out of memory
+    NMF_INTERFACE_NOT_BINDED =               -59,      //!< Try to unbind not binded interface
+    NMF_INTERFACE_ALREADY_BINDED =           -60,      //!< Try to bind already binded interface
+    NMF_NO_SUCH_REQUIRED_INTERFACE =         -63,      //!< Interface name not required by a component
+    NMF_NO_SUCH_PROVIDED_INTERFACE =         -64,      //!< Interface name not provided by a component
+    NMF_COMPONENT_NOT_STOPPED =              -80,      //!< Component must be stopped to perform operation
+    NMF_INVALID_COMPONENT_STATE_TRANSITION = -81,      //!< Invalid component state transition caused by user action
+    NMF_NO_SUCH_PROPERTY =                   -87,      //!< Property name doesn't exported by the underlying component
+    NMF_NO_SUCH_ATTRIBUTE =                  -88,      //!< Attribute name not shared (exported) by a component
+    NMF_NO_MESSAGE =                         -103,     //!< No message available
+    NMF_FLUSH_MESSAGE =                      -106,     //!< Message send after call to EE_FlushChannel()
+    NMF_INTEGRATION_ERROR0 =                 -112,     //!< OS dependent integration Error [-112 -> -121]
+    NMF_INTEGRATION_ERROR1 =                 -113,     //!< OS dependent integration Error [-112 -> -121]
+    NMF_INTEGRATION_ERROR2 =                 -114,     //!< OS dependent integration Error [-112 -> -121]
+    NMF_INTEGRATION_ERROR3 =                 -115,     //!< OS dependent integration Error [-112 -> -121]
+    NMF_INTEGRATION_ERROR4 =                 -116,     //!< OS dependent integration Error [-112 -> -121]
+    NMF_INTEGRATION_ERROR5 =                 -117,     //!< OS dependent integration Error [-112 -> -121]
+    NMF_INTEGRATION_ERROR6 =                 -118,     //!< OS dependent integration Error [-112 -> -121]
+    NMF_INTEGRATION_ERROR7 =                 -119,     //!< OS dependent integration Error [-112 -> -121]
+    NMF_INTEGRATION_ERROR8 =                 -120,     //!< OS dependent integration Error [-112 -> -121]
+    NMF_INTEGRATION_ERROR9 =                 -121      //!< OS dependent integration Error [-112 -> -121]
+} t_nmf_errorDescription;
+
+/*!
+ * \brief Define t_nmf_channel type that identify a communication channel between nmf and user.
+ *
+ * \ingroup NMF_COMMON_TYPE
+ */
+typedef t_uint32 t_nmf_channel;
+
+#endif /* NMF_TYPE_H_ */

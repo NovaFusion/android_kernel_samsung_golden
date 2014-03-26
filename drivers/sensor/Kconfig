@@ -1,0 +1,15 @@
+menuconfig NEW_SENSORS
+	bool "Sensors Support"
+	help
+	  Say Y to enable Sensors support.  This allows control of supported
+	  Sensors.
+
+if NEW_SENSORS
+
+source "drivers/sensor/alps/Kconfig"
+source "drivers/sensor/proximity/Kconfig"
+source "drivers/sensor/orientation/Kconfig"
+source "drivers/sensor/mpu3050/Kconfig"
+source "drivers/sensor/compass/Kconfig"
+
+endif # NEW_SENSORS

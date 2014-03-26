@@ -1,0 +1,13 @@
+config DRM_NOVA
+	bool "Nova MCDE DRM/KMS support"
+	depends on DRM && PLAT_NOMADIK
+	select DRM_KMS_HELPER
+	select FB_SYS_FILLRECT
+	select FB_SYS_COPYAREA
+	select FB_SYS_IMAGEBLIT
+	select FB_SYS_FOPS
+	select MCDE
+	help
+	  Choose this option to enable KMS display driver support for
+	  u5500/u8500/u9540 SoCs.
+

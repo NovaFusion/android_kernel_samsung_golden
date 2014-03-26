@@ -1,0 +1,33 @@
+config CLKSRC_I8253
+	bool
+
+config CLKSRC_MMIO
+	bool
+
+config CLKSRC_DBX500_PRCMU
+	bool "Clocksource PRCMU Timer"
+	depends on UX500_SOC_DB5500 || UX500_SOC_DB8500
+	default y if UX500_SOC_DB8500
+	help
+	  Use the always on PRCMU Timer as clocksource
+
+config CLKSRC_DBX500_PRCMU_SCHED_CLOCK
+	bool
+	depends on CLKSRC_DBX500_PRCMU
+	select HAVE_SCHED_CLOCK
+	help
+	  Use the always on PRCMU Timer as sched_clock
+
+config CLKSRC_DB5500_MTIMER
+	bool "Clocksource MTIMER"
+	depends on UX500_SOC_DB5500
+	default y
+	help
+	  Use the always on MTIMER as clocksource
+
+config CLKSRC_DB5500_MTIMER_SCHED_CLOCK
+	bool
+	depends on CLKSRC_DB5500_MTIMER
+	select HAVE_SCHED_CLOCK
+	help
+	  Use the always on PRCMU Timer as sched_clock

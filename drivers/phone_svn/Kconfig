@@ -1,0 +1,43 @@
+#
+#
+#
+
+menuconfig SAMSUNG_PHONE_SVNET
+	tristate "Samsung Phone Interface - SVN"
+	default n
+	---help---
+		I love you.
+
+if SAMSUNG_PHONE_SVNET
+
+menuconfig PHONE_MODEMCTL 
+	tristate "Modem Control"
+	depends on SAMSUNG_PHONE_SVNET
+	default m
+	help
+	  Say Y to enable Modem Control support.
+
+menuconfig PHONE_ONEDRAM
+	tristate "OneDRAM"
+	depends on SAMSUNG_PHONE_SVNET
+	default m
+	help
+	  Say Y to enable OneDRAM Interface support.
+
+menuconfig PHONE_SVNET
+	tristate "Samsung Virtual Network"
+	depends on SAMSUNG_PHONE_SVNET
+	default m
+	help
+	  Say Y to enable Samsung Virtual Network support
+
+config SVNET_WHITELIST
+	bool "svnet uses whitelist via onedram"
+	default n
+	---help---
+	  By default, n
+
+	  When in doubt, say N.
+
+
+endif # SAMSUNG_PHONE_SVNET

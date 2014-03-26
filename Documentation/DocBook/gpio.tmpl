@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+	"http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd" []>
+
+<book id="GPIO">
+ <bookinfo>
+  <title>GPIO1B</title>
+
+  <authorgroup>
+   <author>
+    <firstname>Alessandro</firstname>
+    <surname>Rubini</surname>
+    <affiliation>
+     <address>
+      <email>rubini@unipv.it</email>
+     </address>
+    </affiliation>
+   </author>
+   <author>
+    <firstname>Prafulla</firstname>
+    <surname>WADASKAR</surname>
+    <affiliation>
+     <address>
+      <email>prafulla.wadaskar@st.com</email>
+     </address>
+    </affiliation>
+   </author>
+   </authorgroup>
+
+  <copyright>
+   <year>2008-2010</year>
+   <holder>ST-Ericsson</holder>
+  </copyright>
+
+  <subjectset>
+    <subject>
+      <subjectterm>Linux standard functions</subjectterm>
+    </subject>
+  </subjectset>
+
+  <legalnotice>
+   <!-- Do NOT remove the legal notice below -->
+
+  <para>
+     This documentation is free software; you can redistribute
+     it and/or modify it under the terms of the GNU General Public
+     License as published by the Free Software Foundation; either
+     version 2 of the License, or (at your option) any later
+     version.
+   </para>
+
+   <para>
+     This program is distributed in the hope that it will be
+     useful, but WITHOUT ANY WARRANTY; without even the implied
+     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+     See the GNU General Public License for more details.
+   </para>
+
+   <para>
+     You should have received a copy of the GNU General Public
+     License along with this program; if not, write to the Free
+     Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+     MA 02111-1307 USA
+   </para>
+
+   <para>
+     For more details see the file COPYING in the source
+     distribution of Linux.
+   </para>
+  </legalnotice>
+ </bookinfo>
+
+<toc></toc>
+  <chapter id="intro">
+    <title>Introduction</title>
+    <para>
+	This Documentation describes the API's provided by the GPIO controller Driver.
+    </para>
+    <para>
+	Only the API specific to the Ux500 platform is listed here.  For the generic GPIO
+	API, see <filename>Documentation/gpio.txt</filename> in the kernel source tree.
+    </para>
+  </chapter>
+
+  <chapter id="bugs">
+     <title>Known Bugs And Assumptions</title>
+  <para>
+     <variablelist>
+     <varlistentry>
+       <term>None</term>
+       <listitem>
+         <para>
+		None.
+           </para>
+       </listitem>
+     </varlistentry>
+     </variablelist>
+  </para>
+  </chapter>
+
+  <chapter id="pubfunctions">
+    <title> Public Interface </title>
+    <para>
+	This Section lists the API's provided by the GPIO controller driver to client drivers.
+    </para>
+    <para>
+	Only the API specific to the Ux500 platform is listed here.  For the generic GPIO
+	API, see <filename>Documentation/gpio.txt</filename> in the kernel source tree.
+    </para>
+!Earch/arm/plat-nomadik/gpio.c
+  </chapter>
+</book>

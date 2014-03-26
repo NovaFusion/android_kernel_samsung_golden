@@ -1,0 +1,278 @@
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+	"http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd" []>
+
+<book id="STE-Timed-Output-Vibrator-API-Guide">
+ <bookinfo>
+  <title>Timed Output Vibrator Driver</title>
+
+  <authorgroup>
+   <author>
+    <firstname>Marcin</firstname>
+    <surname>Mielczarczyk</surname>
+    <affiliation>
+     <address>
+      <email>marcin.mielczarczyk@tieto.com</email>
+     </address>
+    </affiliation>
+   </author>
+  </authorgroup>
+
+  <copyright>
+   <year>2010</year>
+   <holder>ST-Ericsson</holder>
+  </copyright>
+
+  <subjectset>
+    <subject>
+      <subjectterm>Linux standard functions</subjectterm>
+    </subject>
+  </subjectset>
+
+  <legalnotice>
+
+  <para>
+     This documentation is free software; you can redistribute
+     it and/or modify it under the terms of the GNU General Public
+     License as published by the Free Software Foundation; either
+     version 2 of the License, or (at your option) any later
+     version.
+   </para>
+
+   <para>
+     This program is distributed in the hope that it will be
+     useful, but WITHOUT ANY WARRANTY; without even the implied
+     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+     See the GNU General Public License for more details.
+   </para>
+
+   <para>
+     You should have received a copy of the GNU General Public
+     License along with this program; if not, write to the Free
+     Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+     MA 02111-1307 USA
+   </para>
+
+   <para>
+     For more details see the file COPYING in the source
+     distribution of Linux.
+   </para>
+ </legalnotice>
+ </bookinfo>
+
+ <toc></toc>
+
+ <chapter id="intro">
+  <title>Introduction</title>
+  <para>
+     This documentation describes the implementation of ST-Ericsson's
+     Timed Output Vibrator driver for the ST-Ericsson Linux platforms.
+  </para>
+ </chapter>
+
+ <chapter id="gettingstarted">
+  <title>Getting Started</title>
+  <para>
+     There are no special compilation flags needed to build the
+     Timed Output Vibrator driver.
+  </para>
+
+  <section id="basic-tutorial">
+    <title>Basic Tutorial</title>
+    <para>
+      Before using this driver few parameters shall be defined in the platform data structure:
+    <itemizedlist>
+      <listitem><para>Boost level - vibrator speed in the the startup stage</para></listitem>
+      <listitem><para>Boost time - vibrator startup period</para></listitem>
+      <listitem><para>On level - vibrator moderate speed</para></listitem>
+      <listitem><para>On time - vibrator moderate period</para></listitem>
+      <listitem><para>Off level - vibrator speed in the stop stage</para></listitem>
+      <listitem><para>Off time - vibrator stop period</para></listitem>
+    </itemizedlist>
+    </para>
+    <para>
+      NOTE: If the time elapsing between the ON and OFF sequence is smaller than the 'boost' period,
+      then OFF is delayed until the 'boost' expires. If the time elapsing between the OFF and
+      ON sequence is smaller than the 'off' period, then ON is delayed until the 'off' period expires.
+      The ON request when vibrator is in 'boost' or 'on' stage is ignored.
+      The OFF request when vibrator is in the 'off' stage is ignored.
+    </para>
+    <para>
+      To enable the Timed Output Vibrator driver using Kconfig, go to
+      <constant> Device Drivers -&gt; Staging -&gt; Android </constant>
+      and enable the following:
+    </para>
+    <itemizedlist>
+      <listitem><para>ST-Ericsson Timed Output Vibrator driver</para></listitem>
+    </itemizedlist>
+  </section>
+
+ </chapter>
+
+ <chapter id="concepts">
+  <title>Concepts</title>
+  <para>
+    Vibrator driver registers as timed output class device (implemented for Android).
+  </para>
+ </chapter>
+
+ <chapter id="tasks">
+  <title>Tasks</title>
+   <para>
+    Timed Output Vibrator can be controlled from user space using following device:
+    <itemizedlist>
+     <listitem><para>/sys/class/timed_output/vibrator/enable</para></listitem>
+    </itemizedlist>
+     To turn on the vibrator for 1s, following command should be executed:
+    <itemizedlist>
+     <listitem><para>echo 1000 &gt; /sys/class/timed_output/vibrator/enable</para></listitem>
+    </itemizedlist>
+     To turn off the vibrator if enabled, then the following command should be executed:
+    <itemizedlist>
+     <listitem><para>echo 0 &gt; /sys/class/timed_output/vibrator/enable</para></listitem>
+    </itemizedlist>
+     To get the remaining time, the following command should be executed:
+    <itemizedlist>
+     <listitem><para>cat /sys/class/timed_output/vibrator/enable</para></listitem>
+    </itemizedlist>
+   </para>
+
+ </chapter>
+
+ <chapter id="driver-configuration">
+  <title>Driver Configuration and Interaction</title>
+  <para>
+     There are no configuration parameters for Timed Output Vibrator Driver.
+  </para>
+  <section id="driver-implemented-operations">
+    <title>Implemented operations in driver</title>
+    <para>
+     All available operations are provided by Timed Output class driver.
+    </para>
+    <para>
+           <table>
+             <title> Supported device driver operations </title>
+             <tgroup cols="2"><tbody>
+               <row><entry> enable </entry> <entry> Calls vibra_enable() function which controls timer and workqueue </entry> </row>
+               <row><entry> get_time </entry> <entry> Calls vibra_get_time() function which returns time remaining to the end of vibration </entry> </row>
+             </tbody></tgroup>
+           </table>
+    </para>
+
+  </section>
+    <section id="driver-loading">
+    <title>Driver loading parameters</title>
+    <para>
+     Not Applicable.
+    </para>
+  </section>
+  <section id="driver-ioctl">
+    <title>Driver IO Control</title>
+    <para>
+     Not Applicable.
+    </para>
+ </section>
+
+ <section id="driver-sysfs">
+    <title>Driver Interaction with Sysfs</title>
+    <para>
+     Timed Output Vibrator driver is available in sysfs as <filename>/sys/class/timed_output/vibrator</filename>
+    </para>
+    <variablelist>
+    <varlistentry>
+      <term>enable</term>
+      <listitem>
+        <variablelist>
+          <varlistentry>
+              <term>Direction</term>
+              <listitem><para>read-write</para></listitem>
+          </varlistentry>
+          <varlistentry>
+             <term>Attribute file type</term>
+             <listitem>
+             <para>Text file</para>
+             </listitem>
+          </varlistentry>
+          <varlistentry>
+             <term>File path</term>
+             <listitem><para><filename>/sys/class/timed_output/vibrator/enable</filename></para>
+              </listitem>
+          </varlistentry>
+          <varlistentry>
+             <term>Description</term>
+             <listitem>
+		<para>
+			Vibrator is enabled for given period of time on file write (in miliseconds).
+		</para>
+		<para>
+			When written 0, vibrator stops.
+		</para>
+		<para>
+			When file is read, it gives remaining time to disable vibrator (in miliseconds).
+                </para>
+             </listitem>
+           </varlistentry>
+         </variablelist>
+         </listitem>
+       </varlistentry>
+
+    </variablelist>
+  </section>
+ <section id="driver-proc">
+    <title>Driver Interaction using /proc filesystem</title>
+    <para>
+     Not Applicable.
+    </para>
+
+  </section>
+
+ <section id="driver-other">
+    <title>Other means for Driver Interaction</title>
+    <para>
+     Not Applicable.
+    </para>
+  </section>
+
+ <section id="driver-node">
+    <title>Driver Node File</title>
+    <para>
+      Not aplicable.
+    </para>
+  </section>
+
+
+ </chapter>
+
+
+ <chapter id="bugs">
+  <title>Known Bugs And Assumptions</title>
+  <para>
+    <variablelist>
+     <varlistentry>
+      <term>None.</term>
+      <listitem>
+       <para>
+       </para>
+      </listitem>
+     </varlistentry>
+
+    </variablelist>
+
+  </para>
+ </chapter>
+
+<chapter id="pubfunctions">
+   <title>Public Functions Provided</title>
+    <para>
+     Not Applicable.
+    </para>
+</chapter>
+
+<chapter id="internal-functions">
+   <title>Internal Functions Provided</title>
+     <para>
+     This chapter contains the autogenerated documentation of the internal functions.
+     </para>
+!Edrivers/staging/android/ste_timed_vibra.c
+</chapter>
+
+</book>

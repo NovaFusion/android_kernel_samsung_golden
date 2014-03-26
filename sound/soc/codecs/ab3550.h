@@ -1,0 +1,333 @@
+/*
+ * Copyright (C) ST-Ericsson SA 2010
+ *
+ * Author: Xie Xiaolei <xie.xiaolei@etericsson.com>
+ *         for ST-Ericsson.
+ *
+ * License terms:
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as published
+ * by the Free Software Foundation.
+ */
+#ifndef AB3550_CODEC_REGISTERS_H
+#define AB3550_CODEC_REGISTERS_H
+
+#define AB3550_SUPPORTED_RATE (SNDRV_PCM_RATE_8000 | SNDRV_PCM_RATE_16000 | \
+			       SNDRV_PCM_RATE_44100 | SNDRV_PCM_RATE_48000)
+
+#define AB3550_SUPPORTED_FMT (SNDRV_PCM_FMTBIT_S16_LE | \
+			      SNDRV_PCM_FMTBIT_S24_LE)
+
+/* MIC BIAS */
+
+#define MIC_BIAS1 0X31
+#define MIC_BIAS2 0X32
+#define MBIAS2_OUT_V_MASK 0x04
+#define MBIAS2_OUT_V_SHIFT 2
+#define MBIAS_PWR_MASK 0x02
+#define MBIAS_PWR_SHIFT 1
+#define MBIAS_PDN_IMP_MASK 0x01
+#define MBIAS_PDN_IMP_SHIFT 0
+
+#define MIC_BIAS2_VAD 0x33
+#define MBIAS2_R_INT_MASK 0x01
+#define MBIAS2_R_INT_SHIFT 0
+
+/* MIC */
+#define MIC1_GAIN 0x34
+#define MIC2_GAIN 0x35
+#define MICx_GAIN_MASK 0xF0
+#define MICx_GAIN_SHIFT 4
+#define MICx_IN_IMP_MASK 0x0C
+#define MICx_IN_IMP_SHIFT 2
+#define MICx_PWR_MASK 0x01
+#define MICx_PWR_SHIFT 0
+
+#define MIC1_INPUT_SELECT 0x36
+#define MIC2_INPUT_SELECT 0x37
+#define MICxP1_SEL_MASK 0x80
+#define MICxP1_SEL_SHIFT 7
+#define MICxN1_SEL_MASK 0x40
+#define MICxN1_SEL_SHIFT 6
+#define MICxP2_SEL_MASK 0x20
+#define MICxP2_SEL_SHIFT 5
+#define MICxN2_SEL_MASK 0x10
+#define MICxN2_SEL_SHIFT 4
+#define LINEIN_SEL_MASK 0x03
+#define LINEIN_SEL_SHIFT 0
+
+#define MIC1_VMID_SELECT 0x38
+#define MIC2_VMID_SELECT 0x39
+#define VMIDx_ENABLE_MASK 0xC0
+#define VMIDx_ENABLE_SHIFT 6
+#define VMIDx_LINEIN1_N_MASK 0x20
+#define VMIDx_LINEIN1_N_SHIFT 5
+#define VMIDx_LINEIN2_N_MASK 0x10
+#define VMIDx_LINEIN2_N_SHIFT 4
+#define VMIDx_MICxP1_MASK  0x08
+#define VMIDx_MICxP1_SHIFT 3
+#define VMIDx_MICxP2_MASK  0x04
+#define VMIDx_MICxP2_SHIFT 2
+#define VMIDx_MICxN1_MASK  0x02
+#define VMIDx_MICxN1_SHIFT 1
+#define VMIDx_MICxN2_MASK  0x01
+#define VMIDx_MICxN2_SHIFT 0
+
+#define MIC2_TO_MIC1 0x3A
+#define MIC2_TO_MIC1_MASK 0x03
+#define MIC2_TO_MIC1_SHIFT 0
+
+/* Analog Loop */
+#define ANALOG_LOOP_PGA1 0x3B
+#define ANALOG_LOOP_PGA2 0x3C
+#define APGAx_GAIN_MASK 0xF8
+#define APGAx_GAIN_SHIFT 3
+#define APGAx_PWR_MASK 0x04
+#define APGAx_PWR_SHIFT 2
+#define APGAx_MUX_MASK 0x03
+#define APGAx_MUX_SHIFT 0
+#define APGAx_MUX_MIC1_MASK 0x01
+#define APGAx_MUX_MIC1_SHIFT 0
+#define APGAx_MUX_MIC2_MASK 0x02
+#define APGAx_MUX_MIC2_SHIFT 1
+
+
+#define APGA_VMID_SELECT 0x3D
+#define VMID_APGA1_ENABLE_MASK 0xC0
+#define VMID_APGA1_ENABLE_SHIFT 6
+#define VMID_APGA1_LINEIN1_MASK 0x20
+#define VMID_APGA1_LINEIN1_SHIFT 5
+#define VMID_APGA2_ENABLE_MASK 0x0C
+#define VMID_APGA2_ENABLE_SHIFT 2
+#define VMID_APGA2_LINEIN2_MASK 0x02
+#define VMID_APGA2_LINEIN2_SHIFT 1
+
+/* Output Amplifiers */
+#define EAR 0x3E
+#define EAR_PWR_MODE_MASK 0x20
+#define EAR_PWR_MODE_SHIFT 5
+#define EAR_PWR_MASK 0x10
+#define EAR_PWR_SHIFT 4
+#define EAR_GAIN_MASK 0x0F
+#define EAR_GAIN_SHIFT 0
+
+#define AUXO1 0x3F
+#define AUXO2 0x40
+#define AUXOx_PWR_MASK 0x80
+#define AUXOx_PWR_SHIFT 7
+#define AUXOx_INV_MASK 0x40
+#define AUXOx_INV_SHIFT 6
+#define AUXOx_PULLDOWN_MASK 0x20
+#define AUXOx_PULLDOWN_SHIFT 5
+#define AUXOx_GAIN_MASK 0x0F
+#define AUXOx_GAIN_SHIFT 0
+
+#define AUXO_PWR_MODE 0x41
+#define AUT_PWR_MODE_MASK 0x04
+#define AUT_PWR_MODE_SHIFT 2
+#define AUXO_PWR_MODE_MASK 0x03
+#define AUXO_PWR_MODE_SHIFT 0
+
+#define OFFSET_CANCEL 0x42
+#define SPKR_OFF_CANC_MASK 0x04
+#define SPKR_OFF_CANC_SHIFT 2
+#define AUXO_OFF_CANC_MASK 0x02
+#define AUXO_OFF_CANC_SHIFT 1
+#define OFFSET_CLOCK_MASK 0x01
+#define OFFSET_CLOCK_SHIFT 0
+
+#define SPKR 0x43
+#define OVR_CURR_PROT_MASK 0x80
+#define OVR_CURR_PROT_SHIFT 7
+#define SPKR_PWR_MASK 0x40
+#define SPKR_PWR_SHIFT 6
+#define SPKR_GAIN_MASK 0x1F
+#define SPKR_GAIN_SHIFT 0
+
+#define LINE1 0x44
+#define LINE2 0x45
+#define LINEx_PWR_MASK 0x80
+#define LINEx_PWR_SHIFT 7
+#define LINEx_INV_MASK 0x40
+#define LINEx_INV_SHIFT 6
+#define VMID_BUFFx_MASK 0x10
+#define VMID_BUFFx_SHIFT 4
+#define LINEx_GAIN_MASK 0x0F
+#define LINEx_GAIN_SHIFT 0
+
+/* Analog loop Routing */
+
+#define APGA1_ADDER 0x46
+#define APGA2_ADDER 0x47
+#define APGAx_TO_LINE1_MASK 0x20
+#define APGAx_TO_LINE1_SHIFT 0x5F
+#define APGAx_TO_LINE2_MASK 0x10
+#define APGAx_TO_LINE2_SHIFT 4
+#define APGAx_TO_SPKR_MASK 0x08
+#define APGAx_TO_SPKR_SHIFT 3
+#define APGAx_TO_EAR_MASK 0x04
+#define APGAx_TO_EAR_SHIFT 2
+#define APGAx_TO_AUXO1_MASK 0x02
+#define APGAx_TO_AUXO1_SHIFT 1
+#define APGAx_TO_AUXO2_MASK 0x01
+#define APGAx_TO_AUXO2_SHIFT 0
+#define APGAx_ADDER_VALID_BITS_MASK 0x3F
+
+/* Output Amplifiers Routing */
+
+#define EAR_ADDER 0x48
+#define AUXO1_ADDER 0x49
+#define AUXO2_ADDER 0x4A
+#define SPKR_ADDER 0x4B
+#define LINE1_ADDER 0x4C
+#define LINE2_ADDER 0x4D
+#define DAC3_TO_ADDER_MASK 0x04
+#define DAC3_TO_ADDER_SHIFT 2
+#define DAC2_TO_ADDER_MASK 0x02
+#define DAC2_TO_ADDER_SHIFT 1
+#define DAC1_TO_ADDER_MASK 0x01
+#define DAC1_TO_ADDER_SHIFT 0
+
+#define EAR_TO_MIC2 0x4E
+#define EAR_TO_MIC2_MASK 0x01
+#define EAR_TO_MIC2_SHIFT 0
+
+#define SPKR_TO_MIC2 0x4F
+#define SPKR_TO_MIC2_MASK 0x01
+#define SPKR_TO_MIC2_SHIFT 0
+
+#define NEGATIVE_CHARGE_PUMP 0x50
+#define NCP_MODE_MASK 0x02
+#define NCP_MODE_SHIFT 1
+#define NCP_PWR_MASK 0x01
+#define NCP_PWR_SHIFT 0
+
+#define TX1 0x51
+#define TX2 0x52
+#define TXx_HP_FILTER_MASK 0x0C
+#define TXx_HP_FILTER_SHIFT 2
+#define TXx_PWR_MASK 0x02
+#define TXx_PWR_SHIFT 1
+#define ADCx_PWR_MASK 0x01
+#define ADCx_PWR_SHIFT 0
+
+#define RX1 0x53
+#define RX2 0x54
+#define RX2_IF_SELECT_MASK 0x10
+#define RX2_IF_SELECT_SHIFT 4
+#define RX3 0x55
+#define RXx_PWR_MASK 0x08
+#define RXx_PWR_SHIFT 3
+#define DACx_PWR_MASK 0x04
+#define DACx_PWR_SHIFT 2
+#define DACx_PWR_MODE_MASK 0x03
+#define DACx_PWR_MODE_SHIFT 0
+
+#define TX_DIGITAL_PGA1 0X56
+#define TX_DIGITAL_PGA2 0X57
+#define TXDPGAx_MASK 0x0F
+#define TXDPGAx_SHIFT 0
+
+#define RX1_DIGITAL_PGA 0x58
+#define RX2_DIGITAL_PGA 0x59
+#define RX3_DIGITAL_PGA 0x5A
+#define RXx_PGA_GAIN_MASK 0x7F
+#define RXx_PGA_GAIN_SHIFT 0
+
+#define SIDETONE1_PGA 0x5B
+#define SIDETONE2_PGA 0x5C
+#define STx_HP_FILTER_MASK 0x60
+#define STx_HP_FILTER_SHIFT 5
+#define STx_MUX_MASK 0x10
+#define STx_MUX_SHIFT 4
+#define STx_PGA_MASK 0x0F
+#define STx_PGA_SHIFT 0
+
+/* clock */
+
+#define CLOCK 0x5D
+#define CLOCK_REF_SELECT_MASK 0x02
+#define CLOCK_REF_SELECT_SHIFT 1
+#define CLOCK_ENABLE_MASK 0x01
+#define CLOCK_ENABLE_SHIFT 0
+
+/* Interface */
+
+#define INTERFACE0 0x5E
+#define INTERFACE1 0x60
+#define I2Sx_WORDLENGTH_MASK 0x40
+#define I2Sx_WORDLENGTH_SHIFT 6
+#define MASTER_GENx_PWR_MASK 0x20
+#define MASTER_GENx_PWR_SHIFT 5
+#define I2Sx_MODE_MASK 0x10
+#define I2Sx_MODE_SHIFT 4
+#define I2Sx_TRISTATE_MASK 0x08
+#define I2Sx_TRISTATE_SHIFT 3
+#define I2Sx_PULLDOWN_MASK 0x04
+#define I2Sx_PULLDOWN_SHIFT 2
+#define I2Sx_SR_MASK 0x03
+#define I2Sx_SR_SHIFT 0
+#define I2Sx_SR_8000Hz 0
+#define I2Sx_SR_16000Hz 1
+#define I2Sx_SR_44100Hz 2
+#define I2Sx_SR_48000Hz 3
+
+#define INTERFACE0_DATA 0x5F
+#define INTERFACE1_DATA 0x61
+#define I2Sx_L_DATA_MASK 0x0C
+#define I2Sx_L_DATA_TX1_MASK 0x04
+#define I2Sx_L_DATA_TX2_MASK 0x08
+#define I2Sx_L_DATA_SHIFT 2
+#define I2Sx_R_DATA_MASK 0x03
+#define I2Sx_R_DATA_TX1_MASK 0x01
+#define I2Sx_R_DATA_TX2_MASK 0x02
+#define I2Sx_R_DATA_SHIFT 0
+
+#define INTERFACE_LOOP 0x62
+#define I2S0_INT_LOOP_MASK 0x08
+#define I2S0_INT_LOOP_SHIFT 3
+#define I2S0_EXT_LOOP_MASK 0x04
+#define I2S0_EXT_LOOP_SHIFT 2
+#define I2S1_INT_LOOP_MASK 0x02
+#define I2S1_INT_LOOP_SHIFT 1
+#define I2S1_EXT_LOOP_MASK 0x01
+#define I2S1_EXT_LOOP_SHIFT 0
+
+#define INTERFACE_SWAP 0x63
+#define RX_SWAP0_MASK 0x10
+#define RX_SWAP0_SHIFT 4
+#define RX_SWAP1_MASK 0x08
+#define RX_SWAP1_SHIFT 3
+#define IF_SWAP_MASK 0x04
+#define IF_SWAP_SHIFT 2
+#define IO_SWAP0_MASK 0x02
+#define IO_SWAP0_SHIFT 1
+#define IO_SWAP1_MASK 0x01
+#define IO_SWAP1_SHIFT 0
+
+#define AB3550_FIRST_REG MIC_BIAS1
+#define AB3550_LAST_REG INTERFACE_SWAP
+
+#define AB3550_VIRTUAL_REG1 (AB3550_LAST_REG + 1)
+#define IF0_DLD_L_PW_SHIFT 0
+#define IF0_DLD_R_PW_SHIFT 1
+#define IF0_ULD_L_PW_SHIFT 2
+#define IF0_ULD_R_PW_SHIFT 3
+#define IF1_DLD_L_PW_SHIFT 4
+#define IF1_DLD_R_PW_SHIFT 5
+#define IF1_ULD_L_PW_SHIFT 6
+#define IF1_ULD_R_PW_SHIFT 7
+
+#define AB3550_VIRTUAL_REG2 (AB3550_LAST_REG + 2)
+#define MIC1P1_PW_SHIFT 0
+#define MIC1N1_PW_SHIFT 1
+#define MIC1P2_PW_SHIFT 2
+#define MIC1N2_PW_SHIFT 3
+#define MIC2P1_PW_SHIFT 4
+#define MIC2N1_PW_SHIFT 5
+#define MIC2P2_PW_SHIFT 6
+#define MIC2N2_PW_SHIFT 7
+
+
+#endif

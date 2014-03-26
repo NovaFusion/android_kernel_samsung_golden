@@ -1,0 +1,12 @@
+
+config U8500_CM
+	tristate "Ux500 Component Manager driver"
+	depends on UX500_SOC_DB8500 && HWMEM
+	help
+	  This is the Component Manager driver. It is part of the
+	  Nomadik Multiprocessing Framework.
+
+	  Note: This option allows the kernel developers to build
+	  the driver in kernel to ease there life. By default, this driver
+	  must be built outside this kernel source tree.
+

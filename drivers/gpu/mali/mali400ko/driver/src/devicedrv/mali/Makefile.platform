@@ -1,0 +1,29 @@
+#these are the build options for the ST-Ericsson Ux500 platforms.
+
+ifeq ($(CONFIG_UX500_SOC_DB5500),y)
+DEFINES += -DSOC_DB5500=1
+endif
+
+CONFIG = ux500
+CPU = $(CONFIG)
+TARGET_PLATFORM ?= $(CONFIG)
+ARCH ?= arm
+USING_MMU ?= 1
+USING_PMM ?= 1
+USING_MALI_RUN_TIME_PM = 0
+USING_UMP ?= 1
+USING_HWMEM ?= 1
+USING_OS_MEMORY ?= 1
+USING_GPU_UTILIZATION ?= 1
+
+ifeq ($(CONFIG_GPU_MALI_DEBUG),y)
+BUILD ?= debug
+else
+BUILD ?= release
+endif
+
+KDIR-$(CPU)=$(srctree)
+
+EXTRA_CFLAGS += -I$(realpath $(DRIVER_DIR)/../../../include/ump)
+EXTRA_CFLAGS += -I$(realpath $(DRIVER_DIR)/../ump/common)
+

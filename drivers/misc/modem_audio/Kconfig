@@ -1,0 +1,6 @@
+config MODEM_AUDIO_DRIVER
+	bool "Modem Audio Driver"
+	depends on (U5500_MBOX && UX500_SOC_DB5500)
+	help
+	  This module is used for read and write data between APE and
+	  Access side in u5500  platform.

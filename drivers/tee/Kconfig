@@ -1,0 +1,13 @@
+#
+# Copyright (C) ST-Ericsson SA 2010
+# Author: Martin Hovang (martin.xm.hovang@stericsson.com)
+# License terms: GNU General Public License (GPL) version 2
+#
+
+# Trursted Execution Environment Configuration
+config TEE_SUPPORT
+	bool "Trusted Execution Environment Support"
+	default y
+	---help---
+	  This implements the Trusted Execution Environment (TEE) Client
+	  API Specification from GlobalPlatform Device Technology.

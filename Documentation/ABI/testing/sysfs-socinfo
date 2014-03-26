@@ -1,0 +1,16 @@
+What:		/sys/socinfo
+Date:		March 2011
+contact:	Maxime Coquelin <maxime.coquelin-nonst@stericsson.com>
+Description:
+		The /sys/socinfo directory contains information about the
+		System-on-Chip.	It is only available if platform implements it.
+		This directory contains two kind of attributes :
+			- common attributes: 
+				* machine: the name of the machine.
+				* family: the family name of the SoC
+			- SoC-specific attributes: The SoC vendor can declare attributes
+			  to export some strings to user-space, like the serial-number for
+			  example.
+
+Users:
+		User-space applications which needs these kind of attributes.

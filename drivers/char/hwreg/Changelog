@@ -1,0 +1,11 @@
+2009/03/18 (GFE) ===HWREG-2.1===
+	* we have to change physical adresses into virtual.
+	* Major number is set automatically.
+	
+2008/02/06 (CGU) ===HWREG-2.0===
+	* Merged from HWREG-KERNEL_2_6_23_17.1.2 to main
+
+2008/03/28 (CPR) ===HWREG-1.2.UPD_9_1_CPR===
+	* adaptation to kernel >= 2.6.23
+	* correction of the different warning (when is possible)
+	

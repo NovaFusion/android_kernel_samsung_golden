@@ -1,0 +1,77 @@
+#
+# SHM HW kernel configuration
+#
+config U8500_SHRM
+	bool "U8500 SHRM hardware driver"
+	depends on ARCH_U8500 && PHONET && MODEM_U8500
+	default Y
+	---help---
+	  If you say Y here, you will enable the STN8500 SHM hardware driver.
+
+	  If unsure, say N.
+choice
+	prompt "Modem Image Version"
+	depends on U8500_SHRM
+	default SHRM_V1_UPDATES_VERSION
+
+	config SHRM_ED_V1_VERSION
+	depends on U8500_SHRM
+	bool "SHRM ED / V1 "
+	help
+	 Modem Images with ED/V1 updates
+
+	config SHRM_V1_UPDATES_VERSION
+	depends on U8500_SHRM
+	bool "SHRM V1 UPDATES"
+	help
+	 Modem Images with V1 Updates
+
+endchoice
+
+choice
+	prompt "SHRM Network Interface"
+	depends on U8500_SHRM
+	default U8500_SHRM_DEFAULT
+
+	config U8500_SHRM_DEFAULT_NET
+	depends on U8500_SHRM
+	bool "Default shrm0 network interface"
+	help
+	 The default shrm0 network interface
+
+	config U8500_SHRM_SVNET
+	depends on U8500_SHRM
+	bool "svnet0 network interface"
+	help
+	 The svnet0 network interface
+
+endchoice
+
+config U8500_SHRM_LOOP_BACK
+	bool "U8500 SHRM loopback"
+	depends on U8500_SHRM
+	default n
+	---help---
+	  If you say Y here, you will enable the shm loopback
+
+	  If unsure, say N.
+
+config U8500_SHRM_MODEM_SILENT_RESET
+	bool "U8500 SHRM Modem Silent Reset"
+	depends on U8500_SHRM
+	default n
+	---help---
+	  If you say Y here, you will enable the modem silent reset feature
+
+	  If unsure, say N.
+
+config U8500_SHRM_ENABLE_FEATURE_SIGNATURE_VERIFICATION
+	bool "U8500 SHRM Signature Verifiaction"
+	depends on U8500_SHRM
+	default y
+	---help---
+	  If you say Y here, you will enable the shm signature verification
+
+	  If unsure, say N.
+
+

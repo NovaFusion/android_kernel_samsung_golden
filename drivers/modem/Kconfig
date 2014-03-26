@@ -1,0 +1,53 @@
+config MODEM
+        bool "Modem Access Framework"
+        default y
+        help
+         Add support for Modem Access Framework. It allows different
+	 platform specific drivers to register modem access mechanisms
+	 and allows transparent access to modem to the client drivers.
+
+	 If unsure, say N.
+
+config MODEM_U5500_MCDD
+	tristate "Modem crash dump detection driver for STE U5500 platform"
+	depends on (UX500_SOC_DB5500 && U5500_MODEM_IRQ && MODEM)
+	default y
+	help
+	 Add support for Modem crash detection
+	 driver for  STE U5500 platform.
+	 And inform userspace.
+
+         If unsure, say N.
+
+config MODEM_U8500
+	bool "Modem Access driver for STE U8500 platform"
+	depends on MODEM
+	default n
+	help
+	 Add support for Modem Access driver on STE U8500 platform which
+	 uses Shared Memroy as IPC mechanism between Modem processor and
+	 Application processor.
+
+	 If unsure, say N.
+
+source "drivers/modem/shrm/Kconfig"
+
+config MODEM_M6718
+	tristate "Modem Access driver for STE M6718 modem"
+	depends on MODEM
+	default n
+	help
+	 Add support for the modem access driver for the M6718 modem.
+
+	 If unsure, say N.
+
+source "drivers/modem/m6718_spi/Kconfig"
+
+config U8500_KERNEL_CLIENT
+	bool "U8500 kenrel client"
+	depends on U8500_SHRM && UX500_SOC_DB8500
+	default n
+	help
+	  This is the kernel client driver, responsible of receiving,
+	  manupilating and sending response to and from modem.
+	  If unsure, say N.

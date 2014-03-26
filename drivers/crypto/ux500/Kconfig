@@ -1,0 +1,29 @@
+#
+# Copyright (C) ST-Ericsson SA 2010
+# Author: Shujuan Chen (shujuan.chen@stericsson.com)
+# License terms: GNU General Public License (GPL) version 2
+#
+
+config CRYPTO_DEV_UX500_CRYP
+	tristate "UX500 crypto driver for CRYP block"
+	depends on CRYPTO_DEV_UX500
+	select CRYPTO_DES
+	help
+	  This is the driver for the crypto block CRYP.
+
+config CRYPTO_DEV_UX500_HASH
+	tristate "UX500 crypto driver for HASH block"
+	depends on CRYPTO_DEV_UX500
+	select CRYPTO_HASH
+	select CRYPTO_HMAC
+	help
+	  This selects the UX500 hash driver for the HASH hardware.
+	  Depends on U8500/STM DMA if running in DMA mode.
+
+config CRYPTO_DEV_UX500_DEBUG
+	bool "Activate ux500 platform debug-mode for crypto and hash block"
+	depends on CRYPTO_DEV_UX500_CRYP || CRYPTO_DEV_UX500_HASH
+	default n
+	help
+	  Say Y if you want to add debug prints to ux500_hash and
+	  ux500_cryp devices.

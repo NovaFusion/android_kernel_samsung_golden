@@ -1,0 +1,20 @@
+What:           /sys/devices/platform/ab5500-core.0/ab5500-adc.0/adc0volt
+Date:           Nov 2011
+KernelVersion:  3.0
+Contact:        Shreshtha Kumar SAHU <shreshthakumar.sahu@stericsson.com>
+Description:    The adc0volt attribute allows the userspace to read the
+                voltage of the device connected to the General Purpose
+                Analog to Digital Converter (GPADC) channel-0. Voltage
+                conversion from analog to digital happens only when this
+                attribute is read. GPADC block is present in AB5500 chip
+                and has input voltage range of 0-1.8 volt for GPADC Ch-0.
+                It provides result of the converted voltage in 10 bits.
+                Other GPADC channels attributes may appear in this path
+                later. For minimum and maximum input voltage range for
+                each channel please refer to the ST-Ericssons AB5500
+                datasheet. An example usage of GPADC can be an ALS device
+                connected to the channel and user space adapts the
+                LCD backlight brightness based on ambient light value
+                read from the attribute.
+Users:          HAL.
+

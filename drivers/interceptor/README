@@ -1,0 +1,56 @@
+VPNClient packet interceptor, GPL version
+========================================
+
+Prerequisites
+-------------
+
+   A Linux kernel source tree is needed to build the packet
+   interceptor. The kernel needs to be configured and built before
+   building the packet interceptor.
+
+   In the instructions below we assume that this package has been
+   unpacked in the user's home directory, i.e. the root directory of
+   this package is `~/interceptor-gpl'. If you unpacked the package in
+   a different directory, replace `~' with your directory in the
+   instructions below.
+
+Building the packet interceptor
+-------------------------------
+
+   To build the packet interceptor kernel module follow the steps
+   below.
+
+   1. Cd to the interceptor module directory:
+
+         cd ~/interceptor-gpl
+
+   2. Assuming the kernel source tree is located in `/usr/src/linux',
+      build the kernel module usig the following command:
+
+         make KDIR=/usr/src/linux
+
+      Leaving out `KDIR' causes the packet interceptor makefile to use the
+      source tree of the running kernel:
+
+         make
+
+      This is equivalent to
+
+         make KDIR=/lib/modules/`uname -r`/build
+
+      The Linux `ARCH' and `CROSS_COMPILE' variables can be used to
+      build the packet interceptor for another platform. The kernel
+      source tree must have been configured and built with the same
+      values of these variables. For example, to build for an ARM
+      target with cross tools found in the command search path with
+      prefix `arm-eabi-':
+
+         make KDIR=/usr/src/linux ARCH=arm CROSS_COMPILE=arm-eabi-
+
+   3. The resulting kernel module is
+
+         ~/interceptor-gpl/vpnclient.ko
+
+   4. To remove all build results:
+
+         make clean

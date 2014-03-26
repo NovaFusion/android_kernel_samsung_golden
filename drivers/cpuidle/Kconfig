@@ -1,0 +1,53 @@
+
+config CPU_IDLE
+	bool "CPU idle PM support"
+	default ACPI
+	depends on PM
+	help
+	  CPU idle is a generic framework for supporting software-controlled
+	  idle processor power management.  It includes modular cross-platform
+	  governors that can be swapped during runtime.
+
+	  If you're using an ACPI-enabled platform, you should say Y here.
+
+config CPU_IDLE_GOV_LADDER
+	bool
+	depends on CPU_IDLE
+	default y
+
+config CPU_IDLE_GOV_MENU
+	bool
+	depends on CPU_IDLE && NO_HZ
+	default y
+
+config DBX500_CPUIDLE
+	bool "DBX500 CPUIdle support"
+	depends on CPU_IDLE && (MFD_DB5500_PRCMU || MFD_DB8500_PRCMU || MFD_DBX540_PRCMU) && PM
+	default y
+	select GENERIC_CLOCKEVENTS_BROADCAST
+	select DBX500_CONTEXT
+	help
+	  Add support for CPUIdle for U8500.
+
+config DBX500_CPUIDLE_DEEPEST_STATE
+	int "DBX500 Deepest sleep state"
+	default 4 if UX500_SOC_DB8500
+	default 1 if UX500_SOC_DB5500
+	depends on DBX500_CPUIDLE
+	help
+	  Set deepest sleep state. See the cstate struct in cpuidle-dbx500.c.
+	  Default is ApSleep.
+
+config DBX500_CPUIDLE_APDEEPIDLE
+	bool "DBX500 CPUIdle ApDeepIdle"
+	depends on DBX500_CPUIDLE
+	help
+	  Adds the power level ApDeepIdle, where APE is powered on while
+	  ARM is powered off. Default n. Not supported on DB8500.
+
+config DBX500_CPUIDLE_DEBUG
+	bool "DBX500 CPUIdle debug"
+	depends on DBX500_CPUIDLE && DEBUG_FS
+	help
+	  Add debugging support for CPUIdle for DBX500.
+

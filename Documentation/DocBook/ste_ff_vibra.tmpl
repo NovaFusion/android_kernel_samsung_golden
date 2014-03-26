@@ -1,0 +1,217 @@
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+	"http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd" []>
+
+<book id="STE-Force-Feedback-Vibrator-API-Guide">
+ <bookinfo>
+  <title>Force Feedback Vibrator Driver</title>
+
+  <authorgroup>
+   <author>
+    <firstname>Marcin</firstname>
+    <surname>Mielczarczyk</surname>
+    <affiliation>
+     <address>
+      <email>marcin.mielczarczyk@tieto.com</email>
+     </address>
+    </affiliation>
+   </author>
+  </authorgroup>
+
+  <copyright>
+   <year>2010</year>
+   <holder>ST-Ericsson</holder>
+  </copyright>
+
+  <subjectset>
+    <subject>
+      <subjectterm>Linux standard functions</subjectterm>
+    </subject>
+  </subjectset>
+
+  <legalnotice>
+
+  <para>
+     This documentation is free software; you can redistribute
+     it and/or modify it under the terms of the GNU General Public
+     License as published by the Free Software Foundation; either
+     version 2 of the License, or (at your option) any later
+     version.
+   </para>
+
+   <para>
+     This program is distributed in the hope that it will be
+     useful, but WITHOUT ANY WARRANTY; without even the implied
+     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+     See the GNU General Public License for more details.
+   </para>
+
+   <para>
+     You should have received a copy of the GNU General Public
+     License along with this program; if not, write to the Free
+     Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+     MA 02111-1307 USA
+   </para>
+
+   <para>
+     For more details see the file COPYING in the source
+     distribution of Linux.
+   </para>
+ </legalnotice>
+ </bookinfo>
+
+ <toc></toc>
+
+ <chapter id="intro">
+  <title>Introduction</title>
+  <para>
+     This documentation describes the implementation of ST-Ericsson's
+     Force Feedback Vibrator driver for the ST-Ericsson Linux platforms.
+  </para>
+ </chapter>
+
+ <chapter id="gettingstarted">
+  <title>Getting Started</title>
+  <para>
+     There are no special compilation flags needed to build the
+     Force Feedback Vibrator driver.
+  </para>
+
+  <section id="basic-tutorial">
+    <title>Basic Tutorial</title>
+    <para>
+      To enable the Force Feedback Vibrator driver using Kconfig, go to
+      <constant> Device Drivers -&gt; Input Device Support -&gt; Miscellaneous devices </constant>
+      and enable the following:
+    <itemizedlist>
+      <listitem><para>ST-Ericsson Force Feedback Vibrator</para></listitem>
+    </itemizedlist>
+    </para>
+  </section>
+
+ </chapter>
+
+ <chapter id="concepts">
+  <title>Concepts</title>
+  <para>
+    Vibrator driver registers as memless force feedback input device.
+  </para>
+ </chapter>
+
+ <chapter id="driver-configuration">
+  <title>Driver Configuration and Interaction</title>
+  <para>
+     There are no configuration parameters for Force Feedback Vibrator driver.
+  </para>
+  <section id="driver-implemented-operations">
+    <title>Implemented operations in driver</title>
+    <para>
+     All available operations are provided by Memless Input Device class driver.
+    </para>
+    <para>
+           <table>
+             <title> Supported device driver operations </title>
+             <tgroup cols="2"><tbody>
+               <row><entry> open </entry> <entry> Calls ste_ff_vibra_open() function which initializaes workqueue </entry> </row>
+               <row><entry> close </entry> <entry> Calls ste_ff_vibra_close() function which cancels and destroys workqueue </entry> </row>
+             </tbody></tgroup>
+           </table>
+    </para>
+   </section>
+    <section id="driver-loading">
+    <title>Driver loading parameters</title>
+    <para>
+     Not Applicable.
+    </para>
+  </section>
+  <section id="driver-ioctl">
+    <title>Driver IO Control</title>
+    <para>
+     Not Applicable.
+    </para>
+ </section>
+
+ <section id="driver-sysfs">
+    <title>Driver Interaction with Sysfs</title>
+    <para>
+     Not Applicable.
+    </para>
+  </section>
+ <section id="driver-proc">
+    <title>Driver Interaction using /proc filesystem</title>
+    <para>
+     Not Applicable.
+    </para>
+  </section>
+
+ <section id="driver-other">
+    <title>Other means for Driver Interaction</title>
+    <para>
+     Not Applicable.
+    </para>
+  </section>
+
+ <section id="driver-node">
+    <title>Driver Node File</title>
+    <para>
+     Force Feedback Vibrator driver provides following node files:
+    </para>
+    <variablelist>
+    <varlistentry>
+      <term>eventX - Force Feedback Vibrator node file</term>
+      <listitem>
+        <variablelist>
+          <varlistentry>
+              <term>File</term>
+              <listitem><para><filename>/dev/input/eventX</filename></para></listitem>
+           </varlistentry>
+           <varlistentry>
+             <term>Description</term>
+             <listitem>
+             <para>Node file of Force Feedback Vibrator driver</para>
+             </listitem>
+           </varlistentry>
+          </variablelist>
+         </listitem>
+       </varlistentry>
+
+    </variablelist>
+  </section>
+
+
+ </chapter>
+
+
+ <chapter id="bugs">
+  <title>Known Bugs And Assumptions</title>
+  <para>
+    <variablelist>
+     <varlistentry>
+      <term>None.</term>
+      <listitem>
+       <para>
+       </para>
+      </listitem>
+     </varlistentry>
+
+    </variablelist>
+
+  </para>
+ </chapter>
+
+<chapter id="pubfunctions">
+   <title>Public Functions Provided</title>
+   <para>
+     Not Applicable.
+   </para>
+
+</chapter>
+
+<chapter id="internal-functions">
+   <title>Internal Functions Provided</title>
+     <para>
+     This chapter contains the autogenerated documentation of the internal functions.
+     </para>
+!Edrivers/input/misc/ste_ff_vibra.c
+</chapter>
+
+</book>

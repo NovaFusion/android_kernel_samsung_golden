@@ -1,0 +1,4 @@
+header-y += b2r2_blt.h
+header-y += edid.h
+header-y += sisfb.h
+header-y += uvesafb.h

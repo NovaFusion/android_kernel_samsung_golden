@@ -1,0 +1,21 @@
+What:		/sys/devices/platform/_UDC_/gadget/suspended
+Date:		April 2010
+Contact:	Fabien Chouteau <fabien.chouteau@barco.com>
+Description:
+		Show the suspend state of an USB composite gadget.
+		1 -> suspended
+		0 -> resumed
+
+		(_UDC_ is the name of the USB Device Controller driver)
+What:		/sys/devices/platform/_UDC_/gadget/host_request
+Date:		December 2010
+Contact:	Pavan Kondeti <pkondeti@...>
+Description:
+		OTG 2.0 compliant host keeps polling OTG2.0 peripheral
+		for host role. Set host_request flag, which tells host
+		to give up the host role to peripheral.
+
+		1 -> host role is requested
+		0 -> no effect (automatically cleared upon reset/disconnect)
+
+		(_UDC_ is the name of the USB Device Controller driver)

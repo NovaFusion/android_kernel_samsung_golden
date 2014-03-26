@@ -1,0 +1,151 @@
+config MCDE
+	bool
+
+config FB_MCDE
+	bool "MCDE fbdev support"
+	depends on FB
+	select FB_SYS_FILLRECT
+	select FB_SYS_COPYAREA
+	select FB_SYS_IMAGEBLIT
+	select FB_SYS_FOPS
+	select HWMEM
+	select MCDE
+	---help---
+	  This enables support for MCDE based frame buffer driver.
+
+	  Please read the file <file:Documentation/fb/mcde.txt>
+
+config FB_MCDE_DEBUG
+	bool "MCDE debug messages"
+	depends on MCDE
+	---help---
+	  Say Y here if you want the MCDE driver to output debug messages
+
+config FB_MCDE_VDEBUG
+	bool "MCDE verbose debug messages"
+	depends on FB_MCDE_DEBUG
+	---help---
+	  Say Y here if you want the MCDE driver to output more debug messages
+
+config MCDE_FB_AVOID_REALLOC
+	bool "MCDE early allocate framebuffer"
+	default n
+	depends on FB_MCDE
+	---help---
+	  If you say Y here maximum frame buffer size is allocated and
+	  used for all resolutions. If you say N here, the frame buffer is
+	  reallocated when resolution is changed. This reallocation might
+	  fail because of fragmented memory. Note that this memory will
+	  never be deallocated, while the MCDE framebuffer is used.
+
+config MCDE_DISPLAY_DSI
+	bool "Support for DSI displays within MCDE"
+	depends on MCDE
+	default y
+
+menu "MCDE DSI displays"
+	depends on MCDE_DISPLAY_DSI
+
+config MCDE_DISPLAY_WS2401_DSI
+	bool "Widechips WS2401 DSI display driver"
+
+config MCDE_DISPLAY_KYLE_DSI
+	bool "Novatec DSI display driver"
+
+config MCDE_DISPLAY_SAMSUNG_S6D16D0
+	bool "Samsung S6D16D0 DSI display driver"
+	---help---
+	  Say Y if you have a TPO Taal or Blackpearl display panel.
+
+config MCDE_DISPLAY_S6E63M0_DSI
+	bool "Samsung S6E63M0 DSI display driver"
+	
+config MCDE_DISPLAY_TOSHIBA_DSI2LVDS
+	bool "Toshiba DSI2LVDS display driver"
+	---help---
+	  Say Y if you have a DSI2LVDS bridge.
+
+config MCDE_DISPLAY_HIMAX_HX8392
+	bool "HIMAX_HX8392 display driver"
+	---help---
+	  Say Y if you have a chimei 990001267 display panel.
+
+config MCDE_DISPLAY_SONY_ACX424AKP_DSI
+	tristate "Sony acx424akp DSI display driver"
+
+config MCDE_DISPLAY_AV8100
+	tristate "AV8100 HDMI/CVBS display driver"
+	select AV8100
+
+config MCDE_DISPLAY_HDMI_FB_AUTO_CREATE
+	bool "HDMI_FB_AUTO_CREATE"
+	default y
+	depends on MCDE_DISPLAY_AV8100
+	---help---
+	  Say Y if you want the HDMI frame buffer to be created on start
+	  Say N if you want the HDMI frame buffer to be created when HDMI
+	  cable is plugged (needs user space HDMIservice)
+
+endmenu
+
+config MCDE_DISPLAY_DPI
+	bool "Support for DPI displays within MCDE"
+	depends on MCDE
+	default n
+	---help---
+	  Add this option to choose which DPI display driver for MCDE to include
+
+	  DPI (Display Pixel Interface) is a MIPI Alliance standard used for
+	  active-matrix LCDs. The DPI uses parallel data lines.
+
+menu "MCDE DPI displays"
+	depends on MCDE_DISPLAY_DPI
+
+config MCDE_DISPLAY_VUIB500_DPI
+	tristate "DPI display driver for the VUIB500 board"
+	---help---
+	  The VUIB500 is an ST-Ericsson user interface board.
+
+config MCDE_DISPLAY_WS2401_DPI
+         bool "DPI display driver for Codina (U8400)"
+         select MCDE_DISPLAY_DPI_MAIN
+         depends on FB_MCDE && SPI
+         ---help---
+           Say Y here if you want to use WS2401 LCD Panel.
+
+config MCDE_DISPLAY_LD9040_DPI
+         bool "DPI display driver for Keswick"
+         select MCDE_DISPLAY_DPI_MAIN
+         depends on FB_MCDE && SPI && BACKLIGHT_CLASS_DEVICE
+         ---help---
+           Say Y here if you want to use LCD Panel for Keswick board.
+
+config MCDE_DISPLAY_S6E63MN0_DPI
+         bool "DPI display driver for Archer Panel"
+         select MCDE_DISPLAY_DPI_MAIN
+         depends on FB_MCDE && SPI && BACKLIGHT_CLASS_DEVICE
+         ---help---
+           Say Y here if you want to use LCD Panel for Janice board.
+
+config MCDE_DISPLAY_GAVINI_DPI
+         bool "DPI display driver for Godin"
+         select MCDE_DISPLAY_DPI_MAIN
+         depends on FB_MCDE && SPI && BACKLIGHT_CLASS_DEVICE
+         ---help---
+           Say Y here if you want to use LCD Panel for Godin board.
+
+config MCDE_DISPLAY_LMS397KF_DPI
+         bool "DPI display driver for Godin"
+         select MCDE_DISPLAY_DPI_MAIN
+         depends on FB_MCDE && SPI && BACKLIGHT_CLASS_DEVICE
+         ---help---
+           Say Y here if you want to use LCD Panel for gavini board.
+
+config MCDE_DISPLAY_I9060_DPI
+         bool "DPI display driver for GT-I9060"
+         select MCDE_DISPLAY_DPI_MAIN
+         depends on FB_MCDE && SPI && BACKLIGHT_CLASS_DEVICE
+         ---help---
+           Say Y here if you want to use LCD Panel for GT-I9060 board.
+endmenu
+

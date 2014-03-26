@@ -1,0 +1,134 @@
+config FB_B2R2
+	tristate "B2R2 engine support"
+	default n
+	help
+	  B2R2 engine does various bit-blitting operations,post-processor operations
+	  and various compositions.
+
+config B2R2_PLUG_CONF
+	bool "B2R2 bus plug configuration"
+	depends on FB_B2R2
+	default n
+	help
+	  Configures how B2R2 access the memory bus. Enabling this will increase
+	  the performance of B2R2 at the cost of using the bus more heavily.
+
+	  If this is set to 'n', the hardware defaults will be used.
+
+choice
+	prompt "Opcode size"
+	depends on B2R2_PLUG_CONF
+	default B2R2_OPSIZE_64
+
+	config B2R2_OPSIZE_8
+		bool "8 bytes"
+	config B2R2_OPSIZE_16
+		bool "16 bytes"
+	config B2R2_OPSIZE_32
+		bool "32 bytes"
+	config B2R2_OPSIZE_64
+		bool "64 bytes"
+
+endchoice
+
+choice
+	prompt "Chunk size"
+	depends on B2R2_PLUG_CONF
+	default B2R2_CHSIZE_128
+
+	config B2R2_CHSIZE_1
+		bool "1 op"
+	config B2R2_CHSIZE_2
+		bool "2 ops"
+	config B2R2_CHSIZE_4
+		bool "4 ops"
+	config B2R2_CHSIZE_8
+		bool "8 ops"
+	config B2R2_CHSIZE_16
+		bool "16 ops"
+	config B2R2_CHSIZE_32
+		bool "32 ops"
+	config B2R2_CHSIZE_64
+		bool "64 ops"
+	config B2R2_CHSIZE_128
+		bool "128 ops"
+endchoice
+
+choice
+	prompt "Message size"
+	depends on B2R2_PLUG_CONF
+	default B2R2_MGSIZE_128
+
+	config B2R2_MGSIZE_1
+		bool "1 chunk"
+	config B2R2_MGSIZE_2
+		bool "2 chunks"
+	config B2R2_MGSIZE_4
+		bool "4 chunks"
+	config B2R2_MGSIZE_8
+		bool "8 s"
+	config B2R2_MGSIZE_16
+		bool "16 chunks"
+	config B2R2_MGSIZE_32
+		bool "32 chunks"
+	config B2R2_MGSIZE_64
+		bool "64 chunks"
+	config B2R2_MGSIZE_128
+		bool "128 chunks"
+endchoice
+
+choice
+	prompt "Page size"
+	depends on B2R2_PLUG_CONF
+	default B2R2_PGSIZE_256
+
+	config B2R2_PGSIZE_64
+		bool "64 bytes"
+	config B2R2_PGSIZE_128
+		bool "128 bytes"
+	config B2R2_PGSIZE_256
+		bool "256 bytes"
+endchoice
+
+config B2R2_DEBUG
+	bool "B2R2 debugging"
+	default n
+	depends on FB_B2R2
+	help
+	  Enable debugging features for the B2R2 driver.
+
+config B2R2_PROFILER
+	tristate "B2R2 profiler"
+	default n
+	depends on FB_B2R2
+	help
+	  Enables the profiler for the B2R2 driver.
+
+	  It is recommended to build this as a module, since the configuration
+	  of filters etc. is done at load time.
+
+config B2R2_GENERIC
+	bool "B2R2 generic path"
+	default y
+	depends on FB_B2R2
+	help
+	  Enables support for the generic path in the B2R2 driver. This path should
+	  be used when there is no optimized implementation for a request.
+
+choice
+	prompt "Generic usage mode"
+	depends on B2R2_GENERIC
+	default B2R2_GENERIC_FALLBACK
+
+	config B2R2_GENERIC_FALLBACK
+		bool "Fallback"
+		help
+		  The optimized path will be used for all supported operations, and the
+		  generic path will be used as a fallback for the ones not implemented.
+
+	config B2R2_GENERIC_ONLY
+		bool "Always"
+		help
+		  The generic path will be used for all operations.
+
+endchoice

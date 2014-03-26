@@ -1,0 +1,22 @@
+config ARCH_HAS_PASR
+	bool
+
+config PASR
+	bool "DDR Partial Array Self-Refresh"
+	depends on ARCH_HAS_PASR
+	---help---
+	  PASR Frameworks brings support for the Partial Array Self-Refresh DDR
+	  power management feature. PASR has been introduced in LP-DDR2, and is
+	  also present in DDR3.
+	  The role of this framework is to stop the refresh of unused memory to
+	  enhance DDR power consumption.
+
+config PASR_DEBUG
+	bool "Add PASR debug prints"
+	def_bool n
+	depends on PASR
+
+config UX500_PASR
+	bool "Ux500 Family PASR driver"
+	def_bool y
+	depends on (PASR && UX500_SOC_DB8500)

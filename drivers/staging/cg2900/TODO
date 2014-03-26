@@ -1,0 +1,23 @@
+TODO
+----
+
+ - Decide upon main driver architecture.
+
+ - Decide if the CG2900 driver should be a separate driver as today or if it
+   should be a sub-driver using the TI-ST (Shared Transport) driver that is also
+   written for a combo connectivity controller.
+
+ - Decide if cg2900_uart should register on top of hci_ldisc.c (as now) or if it
+   should instead register on top of hci_h4.c thereby reusing hci_h4
+   implementation.
+
+ - Update the hci_ldisc.c so that it will allow drivers to be registered without
+   registering them directly to the Bluetooth stack. Also extend the hci_ldisc.c
+   with more functions to abstract the tty API in a conformative way (currently
+   sometimes the tty API used, sometimes the hci_ldisc interface).
+
+ - Decide if the CG2900 driver should use imported structs and defines to create
+   Bluetooth packets as today or if the Bluetooth stack in the Kernel should be
+   extended so it is possible to use generic functions to send and receive
+   commands and events both from the Bluetooth stack itself and from external
+   drivers such as the CG2900 driver.

@@ -1,0 +1,239 @@
+/*
+ * Copyright (C) ST-Ericsson SA 2010
+ *
+ * Author: Per Forlin <per.forlin@stericsson.com> for ST-Ericsson
+ * Author: Jonas Aaberg <jonas.aberg@stericsson.com> for ST-Ericsson
+ * Author: Rabin Vincent <rabinv.vincent@stericsson.com> for ST-Ericsson
+ *
+ * License terms: GNU General Public License (GPL), version 2
+ */
+
+#include <linux/kernel.h>
+#include <linux/platform_device.h>
+
+#include <plat/ste_dma40.h>
+#include <mach/setup.h>
+#include <mach/hardware.h>
+#include <mach/pm.h>
+#include <mach/ste-dma40-db5500.h>
+
+static struct resource dma40_resources[] = {
+	[0] = {
+		.start = U5500_DMA_BASE,
+		.end   = U5500_DMA_BASE + SZ_4K - 1,
+		.flags = IORESOURCE_MEM,
+		.name  = "base",
+	},
+	[1] = {
+		.start = U5500_DMA_LCPA_BASE,
+		.end   = U5500_DMA_LCPA_BASE + 2 * SZ_1K - 1,
+		.flags = IORESOURCE_MEM,
+		.name  = "lcpa",
+	},
+	[2] = {
+		.start = IRQ_DB5500_DMA,
+		.end   = IRQ_DB5500_DMA,
+		.flags = IORESOURCE_IRQ
+	}
+};
+
+/* Default configuration for physical memcpy */
+static struct stedma40_chan_cfg dma40_memcpy_conf_phy = {
+	.mode = STEDMA40_MODE_PHYSICAL,
+	.dir = STEDMA40_MEM_TO_MEM,
+
+	.src_info.data_width = STEDMA40_BYTE_WIDTH,
+	.src_info.psize = STEDMA40_PSIZE_PHY_1,
+	.src_info.flow_ctrl = STEDMA40_NO_FLOW_CTRL,
+
+	.dst_info.data_width = STEDMA40_BYTE_WIDTH,
+	.dst_info.psize = STEDMA40_PSIZE_PHY_1,
+	.dst_info.flow_ctrl = STEDMA40_NO_FLOW_CTRL,
+};
+
+/* Default configuration for logical memcpy */
+static struct stedma40_chan_cfg dma40_memcpy_conf_log = {
+	.dir = STEDMA40_MEM_TO_MEM,
+
+	.src_info.data_width = STEDMA40_BYTE_WIDTH,
+	.src_info.psize = STEDMA40_PSIZE_LOG_1,
+	.src_info.flow_ctrl = STEDMA40_NO_FLOW_CTRL,
+
+	.dst_info.data_width = STEDMA40_BYTE_WIDTH,
+	.dst_info.psize = STEDMA40_PSIZE_LOG_1,
+	.dst_info.flow_ctrl = STEDMA40_NO_FLOW_CTRL,
+};
+
+/*
+ * Mapping between soruce event lines and physical device address This was
+ * created assuming that the event line is tied to a device and therefore the
+ * address is constant, however this is not true for at least USB, and the
+ * values are just placeholders for USB.  This table is preserved and used for
+ * now.
+ */
+static const dma_addr_t dma40_rx_map[DB5500_DMA_NR_DEV] = {
+	[DB5500_DMA_DEV0_SPI0_RX] = 0,
+	[DB5500_DMA_DEV1_SPI1_RX] = 0,
+	[DB5500_DMA_DEV2_SPI2_RX] = 0,
+	[DB5500_DMA_DEV3_SPI3_RX] = 0,
+	[DB5500_DMA_DEV4_USB_OTG_IEP_1_9] = U5500_USBOTG_BASE,
+	[DB5500_DMA_DEV5_USB_OTG_IEP_2_10] = U5500_USBOTG_BASE,
+	[DB5500_DMA_DEV6_USB_OTG_IEP_3_11] = U5500_USBOTG_BASE,
+	[DB5500_DMA_DEV7_IRDA_RFS] = 0,
+	[DB5500_DMA_DEV8_IRDA_FIFO_RX] = 0,
+	[DB5500_DMA_DEV9_MSP0_RX] = U5500_MSP0_BASE + MSP_TX_RX_REG_OFFSET,
+	[DB5500_DMA_DEV10_MSP1_RX] = U5500_MSP1_BASE + MSP_TX_RX_REG_OFFSET,
+	[DB5500_DMA_DEV11_MSP2_RX] = U5500_MSP2_BASE + MSP_TX_RX_REG_OFFSET,
+	[DB5500_DMA_DEV12_UART0_RX] = 0,
+	[DB5500_DMA_DEV13_UART1_RX] = 0,
+	[DB5500_DMA_DEV14_UART2_RX] = 0,
+	[DB5500_DMA_DEV15_UART3_RX] = 0,
+	[DB5500_DMA_DEV16_USB_OTG_IEP_8] = U5500_USBOTG_BASE,
+	[DB5500_DMA_DEV17_USB_OTG_IEP_1_9] = U5500_USBOTG_BASE,
+	[DB5500_DMA_DEV18_USB_OTG_IEP_2_10] = U5500_USBOTG_BASE,
+	[DB5500_DMA_DEV19_USB_OTG_IEP_3_11] = U5500_USBOTG_BASE,
+	[DB5500_DMA_DEV20_USB_OTG_IEP_4_12] = U5500_USBOTG_BASE,
+	[DB5500_DMA_DEV21_USB_OTG_IEP_5_13] = U5500_USBOTG_BASE,
+	[DB5500_DMA_DEV22_USB_OTG_IEP_6_14] = U5500_USBOTG_BASE,
+	[DB5500_DMA_DEV23_USB_OTG_IEP_7_15] = U5500_USBOTG_BASE,
+	[DB5500_DMA_DEV24_SDMMC0_RX] = U5500_SDI0_BASE + SD_MMC_TX_RX_REG_OFFSET,
+	[DB5500_DMA_DEV25_SDMMC1_RX] = U5500_SDI1_BASE + SD_MMC_TX_RX_REG_OFFSET,
+	[DB5500_DMA_DEV26_SDMMC2_RX] = U5500_SDI2_BASE + SD_MMC_TX_RX_REG_OFFSET,
+	[DB5500_DMA_DEV27_SDMMC3_RX] = U5500_SDI3_BASE + SD_MMC_TX_RX_REG_OFFSET,
+	[DB5500_DMA_DEV28_SDMMC4_RX] = U5500_SDI4_BASE + SD_MMC_TX_RX_REG_OFFSET,
+	/* 29, 30 not used */
+	[DB5500_DMA_DEV31_CRYPTO1_RX] = 0, /* v2 */
+	/* 32 not used */
+	[DB5500_DMA_DEV33_SDMMC0_RX] = U5500_SDI0_BASE + SD_MMC_TX_RX_REG_OFFSET,
+	[DB5500_DMA_DEV34_SDMMC1_RX] = U5500_SDI1_BASE + SD_MMC_TX_RX_REG_OFFSET,
+	[DB5500_DMA_DEV35_SDMMC2_RX] = U5500_SDI2_BASE + SD_MMC_TX_RX_REG_OFFSET,
+	[DB5500_DMA_DEV36_SDMMC3_RX] = U5500_SDI3_BASE + SD_MMC_TX_RX_REG_OFFSET,
+	[DB5500_DMA_DEV37_SDMMC4_RX] = U5500_SDI4_BASE + SD_MMC_TX_RX_REG_OFFSET,
+	[DB5500_DMA_DEV38_USB_OTG_IEP_8] = U5500_USBOTG_BASE,
+	[DB5500_DMA_DEV39_USB_OTG_IEP_1_9] = U5500_USBOTG_BASE,
+	[DB5500_DMA_DEV40_USB_OTG_IEP_2_10] = U5500_USBOTG_BASE,
+	[DB5500_DMA_DEV41_USB_OTG_IEP_3_11] = U5500_USBOTG_BASE,
+	[DB5500_DMA_DEV42_USB_OTG_IEP_4_12] = U5500_USBOTG_BASE,
+	[DB5500_DMA_DEV43_USB_OTG_IEP_5_13] = U5500_USBOTG_BASE,
+	[DB5500_DMA_DEV44_USB_OTG_IEP_6_14] = U5500_USBOTG_BASE,
+	[DB5500_DMA_DEV45_USB_OTG_IEP_7_15] = U5500_USBOTG_BASE,
+	[DB5500_DMA_DEV46_CRYPTO1_RX] = 0, /* v2 */
+	[DB5500_DMA_DEV47_MCDE_RX] = 0,
+	[DB5500_DMA_DEV48_CRYPTO1_RX] = U5500_CRYP1_BASE + CRYP1_RX_REG_OFFSET,
+	/* 49, 50 not used */
+	[DB5500_DMA_DEV49_I2C1_RX] = 0,
+	[DB5500_DMA_DEV50_I2C3_RX] = 0,
+	[DB5500_DMA_DEV51_I2C2_RX] = 0,
+	/* 54 - 60 not used */
+	[DB5500_DMA_DEV61_CRYPTO0_RX] = 0,
+	/* 62, 63 not used */
+};
+
+/* Mapping between destination event lines and physical device address */
+static const dma_addr_t dma40_tx_map[DB5500_DMA_NR_DEV] = {
+	[DB5500_DMA_DEV0_SPI0_TX] = 0,
+	[DB5500_DMA_DEV1_SPI1_TX] = 0,
+	[DB5500_DMA_DEV2_SPI2_TX] = 0,
+	[DB5500_DMA_DEV3_SPI3_TX] = 0,
+	[DB5500_DMA_DEV4_USB_OTG_OEP_1_9] = U5500_USBOTG_BASE,
+	[DB5500_DMA_DEV5_USB_OTG_OEP_2_10] = U5500_USBOTG_BASE,
+	[DB5500_DMA_DEV6_USB_OTG_OEP_3_11] = U5500_USBOTG_BASE,
+	[DB5500_DMA_DEV7_IRRC_TX] = 0,
+	[DB5500_DMA_DEV8_IRDA_FIFO_TX] = 0,
+	[DB5500_DMA_DEV9_MSP0_TX] = U5500_MSP0_BASE + MSP_TX_RX_REG_OFFSET,
+	[DB5500_DMA_DEV10_MSP1_TX] = U5500_MSP1_BASE + MSP_TX_RX_REG_OFFSET,
+	[DB5500_DMA_DEV11_MSP2_TX] = U5500_MSP2_BASE + MSP_TX_RX_REG_OFFSET,
+	[DB5500_DMA_DEV12_UART0_TX] = 0,
+	[DB5500_DMA_DEV13_UART1_TX] = 0,
+	[DB5500_DMA_DEV14_UART2_TX] = 0,
+	[DB5500_DMA_DEV15_UART3_TX] = 0,
+	[DB5500_DMA_DEV16_USB_OTG_OEP_8] = U5500_USBOTG_BASE,
+	[DB5500_DMA_DEV17_USB_OTG_OEP_1_9] = U5500_USBOTG_BASE,
+	[DB5500_DMA_DEV18_USB_OTG_OEP_2_10] = U5500_USBOTG_BASE,
+	[DB5500_DMA_DEV19_USB_OTG_OEP_3_11] = U5500_USBOTG_BASE,
+	[DB5500_DMA_DEV20_USB_OTG_OEP_4_12] = U5500_USBOTG_BASE,
+	[DB5500_DMA_DEV21_USB_OTG_OEP_5_13] = U5500_USBOTG_BASE,
+	[DB5500_DMA_DEV22_USB_OTG_OEP_6_14] = U5500_USBOTG_BASE,
+	[DB5500_DMA_DEV23_USB_OTG_OEP_7_15] = U5500_USBOTG_BASE,
+	[DB5500_DMA_DEV24_SDMMC0_TX] = U5500_SDI0_BASE + SD_MMC_TX_RX_REG_OFFSET,
+	[DB5500_DMA_DEV25_SDMMC1_TX] = U5500_SDI1_BASE + SD_MMC_TX_RX_REG_OFFSET,
+	[DB5500_DMA_DEV26_SDMMC2_TX] = U5500_SDI2_BASE + SD_MMC_TX_RX_REG_OFFSET,
+	[DB5500_DMA_DEV27_SDMMC3_TX] = U5500_SDI3_BASE + SD_MMC_TX_RX_REG_OFFSET,
+	[DB5500_DMA_DEV28_SDMMC4_TX] = U5500_SDI4_BASE + SD_MMC_TX_RX_REG_OFFSET,
+	/* 29 not used */
+	[DB5500_DMA_DEV30_HASH1_TX] = 0, /* v2 */
+	[DB5500_DMA_DEV31_CRYPTO1_TX] = 0, /* v2 */
+	[DB5500_DMA_DEV32_FSMC_TX] = 0,
+	[DB5500_DMA_DEV33_SDMMC0_TX] = U5500_SDI0_BASE + SD_MMC_TX_RX_REG_OFFSET,
+	[DB5500_DMA_DEV34_SDMMC1_TX] = U5500_SDI1_BASE + SD_MMC_TX_RX_REG_OFFSET,
+	[DB5500_DMA_DEV35_SDMMC2_TX] = U5500_SDI2_BASE + SD_MMC_TX_RX_REG_OFFSET,
+	[DB5500_DMA_DEV36_SDMMC3_TX] = U5500_SDI3_BASE + SD_MMC_TX_RX_REG_OFFSET,
+	[DB5500_DMA_DEV37_SDMMC4_TX] = U5500_SDI4_BASE + SD_MMC_TX_RX_REG_OFFSET,
+	[DB5500_DMA_DEV38_USB_OTG_OEP_8] = U5500_USBOTG_BASE,
+	[DB5500_DMA_DEV39_USB_OTG_OEP_1_9] = U5500_USBOTG_BASE,
+	[DB5500_DMA_DEV40_USB_OTG_OEP_2_10] = U5500_USBOTG_BASE,
+	[DB5500_DMA_DEV41_USB_OTG_OEP_3_11] = U5500_USBOTG_BASE,
+	[DB5500_DMA_DEV42_USB_OTG_OEP_4_12] = U5500_USBOTG_BASE,
+	[DB5500_DMA_DEV43_USB_OTG_OEP_5_13] = U5500_USBOTG_BASE,
+	[DB5500_DMA_DEV44_USB_OTG_OEP_6_14] = U5500_USBOTG_BASE,
+	[DB5500_DMA_DEV45_USB_OTG_OEP_7_15] = U5500_USBOTG_BASE,
+	[DB5500_DMA_DEV46_CRYPTO1_TX] = 0, /* v2 */
+	[DB5500_DMA_DEV47_STM_TX] = 0,
+	[DB5500_DMA_DEV48_CRYPTO1_TX] = U5500_CRYP1_BASE + CRYP1_TX_REG_OFFSET,
+	[DB5500_DMA_DEV49_CRYPTO1_TX_HASH1_TX] = 0,
+	[DB5500_DMA_DEV50_HASH1_TX] = U5500_HASH1_BASE + HASH1_TX_REG_OFFSET,
+	[DB5500_DMA_DEV51_I2C1_TX] = 0,
+	[DB5500_DMA_DEV52_I2C3_TX] = 0,
+	[DB5500_DMA_DEV53_I2C2_TX] = 0,
+	/* 54, 55 not used */
+	[DB5500_DMA_MEMCPY_TX_1] = 0,
+	[DB5500_DMA_MEMCPY_TX_2] = 0,
+	[DB5500_DMA_MEMCPY_TX_3] = 0,
+	[DB5500_DMA_MEMCPY_TX_4] = 0,
+	[DB5500_DMA_MEMCPY_TX_5] = 0,
+	[DB5500_DMA_DEV61_CRYPTO0_TX] = 0,
+	[DB5500_DMA_DEV62_CRYPTO0_TX_HASH0_TX] = 0,
+	[DB5500_DMA_DEV63_HASH0_TX] = 0,
+};
+
+static int dma40_memcpy_event[] = {
+	DB5500_DMA_MEMCPY_TX_1,
+	DB5500_DMA_MEMCPY_TX_2,
+	DB5500_DMA_MEMCPY_TX_3,
+	DB5500_DMA_MEMCPY_TX_4,
+	DB5500_DMA_MEMCPY_TX_5,
+};
+
+static struct stedma40_platform_data dma40_plat_data = {
+	.dev_len		= ARRAY_SIZE(dma40_rx_map),
+	.dev_rx			= dma40_rx_map,
+	.dev_tx			= dma40_tx_map,
+	.memcpy			= dma40_memcpy_event,
+	.memcpy_len		= ARRAY_SIZE(dma40_memcpy_event),
+	.memcpy_conf_phy	= &dma40_memcpy_conf_phy,
+	.memcpy_conf_log	= &dma40_memcpy_conf_log,
+	.disabled_channels	= {-1},
+};
+
+static struct platform_device dma40_device = {
+	.dev = {
+		.platform_data = &dma40_plat_data,
+#ifdef CONFIG_PM
+		.pwr_domain = &ux500_dev_power_domain,
+#endif
+	},
+	.name		= "dma40",
+	.id		= 0,
+	.num_resources	= ARRAY_SIZE(dma40_resources),
+	.resource	= dma40_resources
+};
+
+void __init db5500_dma_init(void)
+{
+	int ret;
+
+	ret = platform_device_register(&dma40_device);
+	if (ret)
+		dev_err(&dma40_device.dev, "unable to register device: %d\n",
+			ret);
+}

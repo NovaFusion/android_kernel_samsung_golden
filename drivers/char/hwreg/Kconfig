@@ -1,0 +1,9 @@
+config HWREG
+	tristate "HWREG support"
+	default m
+	help
+	  If you say Y here, the support for HWREG will be compiled into the kernel
+	  and accessible via /dev/hwreg. You can also say M here and the driver will
+	  be build as a module named hwreg.ko.
+
+	  If unsure, say N.

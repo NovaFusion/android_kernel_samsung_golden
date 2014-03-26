@@ -1,0 +1,11 @@
+
+config U8500_MMIO
+	bool "ST-Ericsson MMIO (Camera) Driver"
+	depends on ARCH_U8500
+	help
+	  Enables the ST-Ericsson MMIO (Camera) Driver
+
+config U5500_MMIO
+	bool "ST-Ericsson U5500 MMIO (Camera) Driver"
+	depends on UX500_SOC_DB5500
+

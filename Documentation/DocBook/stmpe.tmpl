@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+	"http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd" []>
+
+<book id="STMPE MFD devices">
+ <bookinfo>
+  <title>STMPE IO-Port Expander guide</title>
+
+  <authorgroup>
+   <author>
+    <firstname>Rabin</firstname>
+    <surname>Vincent</surname>
+    <affiliation>
+     <address>
+      <email>rabin.vincent@stericsson.com</email>
+     </address>
+    </affiliation>
+   </author>
+  </authorgroup>
+
+  <copyright>
+   <year>2010</year>
+   <holder>ST-Ericsson</holder>
+  </copyright>
+
+  <subjectset>
+    <subject>
+      <subjectterm>Linux standard functions</subjectterm>
+    </subject>
+  </subjectset>
+
+  <legalnotice>
+   <para>
+     This documentation is free software; you can redistribute
+     it and/or modify it under the terms of the GNU General Public
+     License version 2 as published by the Free Software Foundation.
+   </para>
+
+   <para>
+     This program is distributed in the hope that it will be
+     useful, but WITHOUT ANY WARRANTY; without even the implied
+     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+     See the GNU General Public License for more details.
+   </para>
+
+   <para>
+     You should have received a copy of the GNU General Public
+     License along with this program; if not, write to the Free
+     Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+     MA 02111-1307 USA
+   </para>
+
+   <para>
+     For more details see the file COPYING in the source
+     distribution of Linux.
+   </para>
+
+   </legalnotice>
+ </bookinfo>
+
+<toc></toc>
+
+  <chapter id="intro">
+    <title>Introduction</title>
+    <para>
+	This documentation describes the driver for STMicroelectronics
+	STMPExxxx port expander devices.
+    </para>
+   </chapter>
+
+ <chapter id="bugs">
+  <title>Known Bugs And Assumptions</title>
+  <para>
+    <variablelist>
+     <varlistentry>
+      <term>None.</term>
+      <listitem>
+       <para>
+		None.
+       </para>
+      </listitem>
+     </varlistentry>
+    </variablelist>
+  </para>
+ </chapter>
+
+ <chapter id="pubfunctions">
+   <title>Public Functions Provided</title>
+   <para>
+	List of public interfaces in stmpe driver
+   </para>
+!Edrivers/mfd/stmpe.c
+ </chapter>
+
+ <chapter id="private">
+   <title>Private Functions</title>
+   <para>
+	STMPE Keypad driver
+	STMPE GPIO driver
+   </para>
+  <section id="stmpe-keypad.c">
+    <title>stmpe-keypad.c</title>
+!Idrivers/input/keyboard/stmpe-keypad.c
+ </section>
+ </chapter>
+
+  <chapter id="Other">
+    <title>Other Data Structures</title>
+    <para>
+       This Section lists some of the Data structure used by the stmpe driver and client drivers.
+    </para>
+!Iinclude/linux/mfd/stmpe.h
+!Idrivers/mfd/stmpe.h
+</chapter>
+</book>

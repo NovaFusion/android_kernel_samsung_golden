@@ -1,0 +1,48 @@
+config AV8100
+       tristate "AV8100 driver support(HDMI/CVBS)"
+       default n
+       help
+           Please enable this feature if hdmi/tvout driver support is required.
+
+config HDMI_AV8100_DEBUG
+	bool "HDMI and AV8100 debug messages"
+	default n
+	depends on AV8100
+	---help---
+	  Say Y here if you want the HDMI and AV8100 driver to
+	  output debug messages.
+
+choice
+	prompt "AV8100 HW trig method"
+	default AV8100_HWTRIG_DSI_TE
+
+config AV8100_HWTRIG_INT
+	bool "AV8100 HW trig on INT"
+	depends on AV8100
+	---help---
+	  If you say Y here AV8100 will use HW triggering
+	  from AV8100 INT to MCDE sync0.
+
+config AV8100_HWTRIG_I2SDAT3
+	bool "AV8100 HW trig on I2SDAT3"
+	depends on AV8100
+	---help---
+	  If you say Y here AV8100 will use HW triggering
+	  from AV8100 I2SDAT3 to MCDE sync1.
+
+config AV8100_HWTRIG_DSI_TE
+	bool "AV8100 HW trig on DSI"
+	depends on AV8100
+	---help---
+	  If you say Y here AV8100 will use HW triggering
+	  using DSI TE polling between AV8100 and MCDE.
+
+config AV8100_HWTRIG_NONE
+	bool "AV8100 SW trig"
+	depends on AV8100
+	---help---
+	  If you say Y here AV8100 will use SW triggering
+	  between AV8100 and MCDE.
+
+endchoice
+

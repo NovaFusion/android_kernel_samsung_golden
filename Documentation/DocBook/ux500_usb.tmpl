@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+	"http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd" []>
+
+<book id="USB-FUNCTION-Guide">
+ <bookinfo>
+  <title>USB Driver Function guide</title>
+
+  <authorgroup>
+    <author>
+    <firstname>Praveena</firstname>
+    <surname>Nadahally</surname>
+    <affiliation>
+     <address>
+      <email>praveen.nadahally@stericsson.com</email>
+     </address>
+    </affiliation>
+    </author>
+    <author>
+    <firstname>Rajaram</firstname>
+    <surname>Ragupathy</surname>
+    <affiliation>
+    <address>
+      <email>ragupathy.rajaram@stericsson.com</email>
+        </address>
+    </affiliation>
+    </author>
+    <author>
+    <firstname>SakethRam</firstname>
+    <surname>Bommisetti</surname>
+    <affiliation>
+     <address>
+       <email>sakethram.bommisetti@stericsson.com</email>
+     </address>
+    </affiliation>
+    </author>
+  </authorgroup>
+
+  <copyright>
+   <year>2011</year>
+   <holder>ST-Ericsson</holder>
+  </copyright>
+
+  <subjectset>
+    <subject>
+      <subjectterm>Connectivity</subjectterm>
+    </subject>
+  </subjectset>
+
+  <legalnotice>
+   <para>
+     This documentation is free software; you can redistribute
+     it and/or modify it under the terms of the GNU General Public
+     License version 2 as published by the Free Software Foundation.
+   </para>
+
+   <para>
+     This program is distributed in the hope that it will be
+     useful, but WITHOUT ANY WARRANTY; without even the implied
+     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+     See the GNU General Public License for more details.
+   </para>
+
+   <para>
+     You should have received a copy of the GNU General Public
+     License along with this program; if not, write to the Free
+     Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+     MA 02111-1307 USA
+   </para>
+
+   <para>
+     For more details see the file COPYING in the source
+     distribution of Linux.
+   </para>
+
+   </legalnotice>
+ </bookinfo>
+
+<toc></toc>
+
+  <chapter id="intro">
+    <title>Introduction</title>
+    <para>
+	This documentation describes ST-Ericsson's adaptation on USB external DMA and communication between Mentor USB IP controller and the USB
+	transreceiver
+    </para>
+    </chapter>
+
+ <chapter id="concepts">
+  <title>Concepts</title>
+  <!-- Do NOT change the chapter id or title! -->
+  <para>
+	In ST-Ericsson's USB driver, the open source linux gadget stack and Mentor IP USB 2.0 driver is used. Since the USB Transceiver and Mentor USB IP controller are on different hardware, API's are defined for the communication between them. These API's are available in ux500.c file.
+	The ST-Ericsson's USB driver doesn't have the internal DMA dedicated for USB. So, the external system DMA is used. The integration of external DMA with the mentor chip is available in ux500_dma.c file.
+	Changes have been made in the musb_core.c file where endpoints are configured as per the platform and also integrated DMA specific chnages in the musb_gadget.c file.
+     <!-- TODO: A brief introduction about the concepts
+           which are introduced by the driver.
+           Remove this chapter completely if there are no
+           special concepts introduced by this driver.
+           Do NOT change the chapter id or title! -->
+     <!-- TODO: This guideline for this chapter may be extended
+           during the user-guide guidelines drop. -->
+  </para>
+ </chapter>
+
+ <chapter id="bugs">
+  <title>Known Bugs And Assumptions</title>
+  <!--  Do NOT change the chapter id or title! -->
+  <para>
+    <variablelist>
+
+     <varlistentry>
+      <term>None.</term>
+      <listitem>
+       <para>
+       </para>
+      </listitem>
+     </varlistentry>
+
+    </variablelist>
+
+  </para>
+ </chapter>
+ <chapter id="pubfunctions">
+ <title>Public Functions Provided</title>
+ <para>
+     The musb driver doesn't export any functions.
+ </para>
+ </chapter>
+ <chapter id="intfunctions">
+   <title>Internal Functions Provided</title>
+   <para>
+	List of internal functions
+   </para>
+   <!-- Do NOT change the chapter id or title! -->
+   <!-- TODO: Replace with link to appropriate headerfile(s),
+        source file(s), or both. One per row, ensure the
+        exclamation mark is on the first column! If no
+        appropriate header or source file exist describing a public interface,
+        replace the inclusion with a paragraph containing the text
+        "Not Applicable"-->
+  <section id="ux500_dma.c">
+    <title>ux500_dma.c</title>
+!Idrivers/usb/musb/ux500_dma.c
+  </section>
+  <section id="ux500.c">
+    <title>ux500.c</title>
+!Idrivers/usb/musb/ux500.c
+  </section>
+</chapter>
+</book>

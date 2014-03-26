@@ -1,0 +1,7 @@
+
+config U8500_FLASH
+	bool "ST-Ericsson Flash (Camera) Driver"
+	depends on ARCH_U8500
+	help
+	  Adds ST-Ericsson Flash (Camera) Driver
+

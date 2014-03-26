@@ -1,0 +1,83 @@
+#
+# M6718 modem SPI IPC driver kernel configuration
+#
+config MODEM_M6718_SPI
+	tristate "M6718 modem IPC SPI driver"
+	depends on MODEM_M6718
+	default y
+	---help---
+	  If you say Y here, you will enable the M6718 modem IPC SPI driver.
+
+	  If unsure, say Y.
+
+config MODEM_M6718_SPI_DEBUG
+	boolean "Modem driver debug"
+	depends on MODEM_M6718_SPI
+	default N
+	---help---
+	   If you say Y here, you will enable full debug trace from the M6718
+	   modem driver.  This should not be enabled by default.
+
+	   If unsure, say N.
+
+config MODEM_M6718_SPI_ENABLE_FEATURE_MODEM_STATE
+	boolean "M6718 modem state driver integration"
+	depends on MODEM_M6718_SPI
+	default y
+	---help---
+	  Enables integration of the IPC driver with the modem state driver.
+	  This allows the IPC driver to be notified of changes in modem state
+	  (on, off, reset) and allows the IPC driver to cause modem state
+	  changes if needed.
+
+	  By default this should be enabled.
+
+config MODEM_M6718_SPI_ENABLE_FEATURE_FRAME_DUMP
+	boolean "IPC SPI L1 frame dump"
+	depends on MODEM_M6718_SPI
+	default n
+	---help---
+	  If you say Y here, you will enable dumping of the raw TX and RX frames
+	  by the IPC driver L1.
+
+	  If unsure, say N.
+
+config MODEM_M6718_SPI_ENABLE_FEATURE_LOOPBACK
+	boolean "Modem IPC loopback support"
+	depends on MODEM_M6718_SPI
+	default y
+	---help---
+	  If you say Y here, you will enable the IPC loopback channels/devices.
+
+	  If unsure, say Y.
+
+
+config MODEM_M6718_SPI_ENABLE_FEATURE_VERIFY_FRAMES
+	boolean "Verify loopback frames"
+	depends on MODEM_M6718_SPI
+	default n
+	---help---
+	  This will enabling checking of loopback frames to verify that the data
+	  received is identical to the data sent.
+
+	  If unsure, say N.
+
+config MODEM_M6718_SPI_ENABLE_FEATURE_THROUGHPUT_MEASUREMENT
+	boolean "Modem IPC throughput measurement"
+	depends on MODEM_M6718_SPI
+	default n
+	---help---
+	  If you say Y here, you will enable the IPC link throughput
+	  measurement and reporting.
+
+	  If unsure, say N.
+
+config MODEM_M6718_SPI_SET_THROUGHPUT_FREQUENCY
+	int "Sample rate for throughput measurements (seconds)"
+	default "5"
+	depends on MODEM_M6718_SPI_ENABLE_FEATURE_THROUGHPUT_MEASUREMENT
+	help
+	  The sample frequency for taking IPC SPI link throughput measurements.
+	  Increasing the rate (reducing the time) will increase the accuracy of
+	  the measurements, but will also increase the impact on link and system
+	  performance.

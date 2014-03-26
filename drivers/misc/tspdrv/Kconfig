@@ -1,0 +1,10 @@
+#
+# Immersion TouchSense Player driver configuration
+#
+config IMMERSION_TSPDRV
+	tristate "Immersion TouchSense Player driver for Haptics"
+	default n
+	help
+	This option enables Immersion TouchSense driver for Haptics interface
+	select Y to build it into the kernel
+	select N to disable it

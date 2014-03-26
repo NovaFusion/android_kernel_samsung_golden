@@ -1,0 +1,52 @@
+config U8500_SECURE
+	bool "Support for running in Secure mode"
+	default n
+	help
+		Build the kernel to run in Secure mode.
+
+#Configuration for MCDE setup
+
+if FB_MCDE
+
+menu "Display setup"
+
+choice
+	prompt "TV output type"
+	default U8500_TV_OUTPUT_AV8100
+	help
+	  Select the source of TV output to use
+
+config U8500_TV_OUTPUT_AV8100
+	bool "AV8100 (HDMI/CVBS)"
+	depends on MCDE_DISPLAY_AV8100
+
+endchoice
+
+choice
+	prompt "Color depth"
+	depends on DISPLAY_GENERIC_PRIMARY
+	default MCDE_DISPLAY_PRIMARY_16BPP
+	help
+	  Select color depth for primary display
+
+config MCDE_DISPLAY_PRIMARY_16BPP
+	bool "16 bpp"
+	help
+	  16 bpp color depth
+
+config MCDE_DISPLAY_PRIMARY_32BPP
+	bool "32 bpp"
+	help
+	  32 bpp color depth
+
+endchoice
+
+config DISPLAY_AV8100_TRIPPLE_BUFFER
+	bool "Enable tripple buffer for HDMI display"
+	depends on MCDE_DISPLAY_AV8100
+	help
+	  Say yes to enable tripple buffer. You'll get double buffer otherwise
+
+endmenu
+
+endif

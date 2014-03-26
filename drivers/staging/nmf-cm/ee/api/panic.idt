@@ -1,0 +1,74 @@
+/*
+ * Copyright (C) ST-Ericsson SA 2010
+ * Author: Jean-Philippe FASSINO <jean-philippe.fassino@stericsson.com> for ST-Ericsson.
+ * License terms:  GNU General Public License (GPL), version 2, with
+ * user space exemption described in the top-level COPYING file in
+ * the Linux kernel source tree.
+ */
+/*!
+ * \defgroup NMF_EE_TYPE Execution Engine Common Type Definitions
+ * \ingroup COMMON
+ */
+
+#ifndef __INC_PANIC_IDT
+#define __INC_PANIC_IDT
+
+/*!
+ * \brief Panic reason type
+ *
+ * For values, see \ref t_panic_reasonDescription.
+ *
+ * \ingroup NMF_EE_TYPE
+ */
+typedef t_uint8 t_panic_reason;
+
+/*!
+ * \brief The different panic reasons
+ *
+ * \verbatim
+ *  Reason                   | Information                       | Behavior
+ *  -------------------------------------------------------------------
+ *  INTERNAL_PANIC           | Not interpreted                   | Fatal panic, stop MPC
+ *  MPC_NOT_RESPONDING_PANIC | Not interpreted                   | Fatal panic, stop MPC
+ *  USER_STACK_OVERFLOW      | Faulting address & SPu            | Fatal panic, stop MPC
+ *  SYSTEM_STACK_OVERFLOW    | Faulting address &  SPu           | Fatal panic, stop MPC
+ *  UNALIGNED_LONG_ACCESS    | Indicative Faulting address & SPu | Fatal panic, stop MPC
+ *  EVENT_FIFO_OVERFLOW      | 0                                 | Abort current task, stop MPC
+ *  PARAM_FIFO_OVERFLOW      | 0                                 | idem
+ *  INTERFACE_NOT_BINDED     | 0                                 | idem
+ *  USER_PANIC               | Not interpreted                   | idem
+ *  UNBIND_INTERRUPT         | Interrupt number                  | Do nothing, just return from interrupt.
+ *  EVENT_FIFO_IN_USE        | Destroy event Fifo while event already schedule (only for HostEE)
+ * \endverbatim
+ *
+ * \ingroup NMF_EE_TYPE
+ */
+typedef enum {
+    INTERNAL_PANIC =                 1,
+    MPC_NOT_RESPONDING_PANIC =       2,
+    USER_STACK_OVERFLOW =            3,
+    SYSTEM_STACK_OVERFLOW =          4,
+    UNALIGNED_LONG_ACCESS =          5,
+    EVENT_FIFO_OVERFLOW =            6,
+    PARAM_FIFO_OVERFLOW =            7,
+    INTERFACE_NOT_BINDED =           8,
+    USER_PANIC =                     9,
+    UNBIND_INTERRUPT =               10,
+    EVENT_FIFO_IN_USE =              11,
+    RESERVED_PANIC =                 2 //for COMPATIBILITY with previous versions of NMF, to be deprecated
+} t_panic_reasonDescription;
+
+/*!
+ * \brief Define the source of the panic
+ *
+ * It indicates the source core of the panic message.\n
+ * It gives the member to use within \ref t_nmf_panic_data (which is a member of the t_nmf_service_data service data structure).
+
+ * \ingroup NMF_EE_TYPE
+ */
+typedef enum {
+	HOST_EE, //!< If the source is the Executive Engine running on the ARM Core
+	MPC_EE   //!< If the source is the Executive Engine running on one of the MPC Core
+} t_panic_source;
+
+#endif

@@ -1,0 +1,67 @@
+#
+# Ux500 SoC audio configuration
+#
+
+menuconfig SND_SOC_UX500
+	bool "SoC Audio support for Ux500 platform"
+	depends on SND_SOC
+	default n
+	help
+		Say Y if you want to add support for the Ux500 platform.
+
+choice
+	prompt "Platform 5500/8500"
+	depends on SND_SOC_UX500
+	default SND_SOC_U8500
+	config SND_SOC_U8500
+	bool "Platform - U8500"
+	config SND_SOC_U5500
+	bool "Platform - U5500"
+endchoice
+
+config SND_SOC_UX500_AB3550
+	bool "Codec - AB3550"
+	depends on SND_SOC_UX500 && (UX500_SOC_DB8500 || UX500_SOC_DB5500) && AB3550_CORE
+	select SND_SOC_AB3550
+	default n
+	help
+		Say Y if you want to include the AB3550 codec.
+
+config SND_SOC_UX500_AB5500
+	bool "Codec - AB5500"
+	depends on SND_SOC_UX500 && (UX500_SOC_DB8500 || UX500_SOC_DB5500) && AB5500_CORE
+	select SND_SOC_AB5500
+	default n
+	help
+	        Say Y if you want to include the AB5500 codec.
+
+config SND_SOC_UX500_AB8500
+	bool "Codec - AB8500"
+	depends on SND_SOC_UX500 && UX500_SOC_DB8500 && AB8500_CORE && AB8500_GPADC
+	select SND_SOC_AB8500
+	default n
+	help
+		Say Y if you want to include AB8500 audio codec.
+
+config SND_SOC_UX500_CG29XX
+	bool "Codec - CG29xx"
+	depends on SND_SOC_UX500 && (UX500_SOC_DB8500 || UX500_SOC_DB5500) && CG2900_AUDIO
+	select SND_SOC_CG29XX
+	default n
+	help
+		Say Y if you want to include CG29xx codec (Combo chip).
+
+config SND_SOC_UX500_AV8100
+	bool "Codec - AV8100"
+	depends on SND_SOC_UX500 && (UX500_SOC_DB8500 || UX500_SOC_DB5500) && AV8100
+	select SND_SOC_AV8100
+	default n
+	help
+		Say Y if you want to include AV8100 codec (HDMI chip).
+
+config SND_SOC_UX500_DEBUG
+	bool "Activate Ux500 platform debug-mode (pr_debug)"
+	depends on SND_SOC_UX500
+	default n
+	help
+		Say Y if you want to add debug level prints for Ux500 code-files.
