@@ -114,6 +114,12 @@ config CPU_FREQ_DEFAULT_GOV_PEGASUSQ
         select CPU_FREQ_GOV_PEGASUSQ
         help
          Use the CPUFreq governor 'pegasusq' as default.
+         
+config CPU_FREQ_DEFAULT_GOV_ABYSSPLUG
+        bool "abyssplug"
+        select CPU_FREQ_GOV_ABYSSPLUG
+        help
+         Use the CPUFreq governor 'abyssplug' as default.
 
 config CPU_FREQ_DEFAULT_GOV_SMARTASS2
 	bool "smartassV2"
@@ -233,6 +239,12 @@ config CPU_FREQ_GOV_PEGASUSQ
     depends on CPU_FREQ
     help
 	  Very good governor.
+      
+config CPU_FREQ_GOV_ABYSSPLUG
+    tristate "'abyssplug' cpufreq governor"
+    depends on CPU_FREQ
+    help
+	  'lulzactiveq' - hotplug mechanism added in lulzactive
 
 config CPU_FREQ_GOV_CONSERVATIVE
 	tristate "'conservative' cpufreq governor"
