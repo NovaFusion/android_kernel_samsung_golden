@@ -187,7 +187,7 @@ static struct device_attribute sec_battery_attrs[] = {
 	SEC_BATTERY_ATTR(batt_vol_adc_cal),
 	SEC_BATTERY_ATTR(batt_vol_aver),
 	SEC_BATTERY_ATTR(batt_vol_adc_aver),
-	SEC_BATTERY_ATTR(batt_temp_adc),
+	SEC_BATTERY_ATTR(batt_temp),
 	SEC_BATTERY_ATTR(batt_temp_aver),
 	SEC_BATTERY_ATTR(batt_temp_adc_aver),
 	SEC_BATTERY_ATTR(batt_vf_adc),
