@@ -137,6 +137,8 @@ struct dsilink_phy {
 	/* DSI data lanes are swapped if true */
 	/* TODO handle more than two lanes swap */
 	bool data_lanes_swap;
+	/* For PBA test of manufactory process */	
+	bool check_pba;
 };
 
 struct dsilink_port {

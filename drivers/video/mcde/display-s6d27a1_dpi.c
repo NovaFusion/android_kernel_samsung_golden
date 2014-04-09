@@ -1,9 +1,9 @@
 /*
- * WS2401 LCD DPI panel driver.
+ * S6D27A1 LCD DPI panel driver.
  *
  * Author: Gareth Phillips  <gareth.phillips@samsung.com>
  *
- * Derived from drivers/video/mcde/display-s6e63m0.c
+ * Derived from drivers/video/mcde/display-ws2401_dpi.c
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -42,43 +42,42 @@
 #include <video/mcde_display-dpi.h>
 #include <video/mcde_display_ssg_dpi.h>
 
-#define ESD_PORT_NUM 93
-#define SPI_COMMAND		0
-#define SPI_DATA		1
 
-#define LCD_POWER_UP		1
-#define LCD_POWER_DOWN		0
-#define LDI_STATE_ON		1
-#define LDI_STATE_OFF		0
+#define ESD_PORT_NUM 			93
+#define SPI_COMMAND			0
+#define SPI_DATA			1
+
+#define LCD_POWER_UP			1
+#define LCD_POWER_DOWN			0
+#define LDI_STATE_ON			1
+#define LDI_STATE_OFF			0
 /* Taken from the programmed value of the LCD clock in PRCMU */
-#define PIX_CLK_FREQ		25000000
-#define VMODE_XRES		480
-#define VMODE_YRES		800
-#define POWER_IS_ON(pwr)	((pwr) <= FB_BLANK_NORMAL)
+#define PIX_CLK_FREQ			25000000
+#define VMODE_XRES			480
+#define VMODE_YRES			800
+#define POWER_IS_ON(pwr)		((pwr) <= FB_BLANK_NORMAL)
 
-#define MIN_BRIGHTNESS		0
-#define MAX_BRIGHTNESS		255
-#define DEFAULT_BRIGHTNESS	120
+#define MIN_BRIGHTNESS			0
+#define MAX_BRIGHTNESS			255
+#define DEFAULT_BRIGHTNESS		120
 
-#define DCS_CMD_COLMOD		0x3A	/* Set Pixel Format */
-#define DCS_CMD_WS2401_RESCTL	0xB8	/* Resolution Select Control */
-#define DCS_CMD_WS2401_PSMPS	0xBD	/* SMPS Positive Control */
-#define DCS_CMD_WS2401_NSMPS	0xBE	/* SMPS Negative Control */
-#define DCS_CMD_WS2401_SMPS	0xBF
-#define DCS_CMD_WS2401_BCMODE	0xC1	/* BC Mode */
-#define DCS_CMD_WS2401_WRBLCTL	0xC3	/* Backlight Control */
-#define DCS_CMD_WS2401_WRDISBV	0xC4	/* Write Manual Brightness */
-#define DCS_CMD_WS2401_WRCTRLD	0xC6	/* Write BL Control */
-#define DCS_CMD_WS2401_WRMIE	0xC7	/* Write MIE mode */
-#define DCS_CMD_WS2401_READID1	0xDA	/* Read panel ID 1 */
-#define DCS_CMD_WS2401_READID2	0xDB	/* Read panel ID 2 */
-#define DCS_CMD_WS2401_READID3	0xDC	/* Read panel ID 3 */
-#define DCS_CMD_WS2401_PASSWD1	0xF0	/* Password1 Command for Level2 */
-#define DCS_CMD_WS2401_DISCTL	0xF2	/* Display Control */
-#define DCS_CMD_WS2401_PWRCTL	0xF3	/* Power Control */
-#define DCS_CMD_WS2401_VCOMCTL	0xF4	/* VCOM Control */
-#define DCS_CMD_WS2401_SRCCTL	0xF5	/* Source Control */
-#define DCS_CMD_WS2401_PANELCTL 0xF6	/*Panel Control*/
+#define DCS_CMD_S6D27A1_RESCTL		0xB3	/* Resolution Select Control */
+#define DCS_CMD_S6D27A1_PANELCTL2	0xB4	/* ASG Signal Control */
+#define DCS_CMD_S6D27A1_BCMODE		0xC1	/* BC Mode */
+#define DCS_CMD_S6D27A1_WRDISBV		0x51	/* Write Manual Brightness */
+#define DCS_CMD_S6D27A1_WRCTRLD		0x53	/* Write BL Control */
+#define DCS_CMD_S6D27A1_READID1		0xDA	/* Read panel ID 1 */
+#define DCS_CMD_S6D27A1_READID2		0xDB	/* Read panel ID 2 */
+#define DCS_CMD_S6D27A1_READID3		0xDC	/* Read panel ID 3 */
+#define DCS_CMD_S6D27A1_PASSWD_L2	0xF0	/* Password1 Command for Level2 */
+#define DCS_CMD_S6D27A1_DISPCTL		0xF2	/* Display Control */
+#define DCS_CMD_S6D27A1_MANPWR		0xF3	/* Manual Control */
+#define DCS_CMD_S6D27A1_PWRCTL1		0xF4	/* Power Control */
+#define DCS_CMD_S6D27A1_SRCCTL		0xF6	/* Source Control */
+#define DCS_CMD_S6D27A1_PANELCTL 	0xF7	/* Panel Control*/
+#define DCS_CMD_S6D27A1_PGAMMACTL	0xFA	/* Positive Gamma Control */
+#define DCS_CMD_S6D27A1_NGAMMACTL	0xFB	/* Negative Gamma Control */
+
 
 
 #define DCS_CMD_SEQ_DELAY_MS	0xFE
@@ -88,12 +87,12 @@
 
 /* to be removed when display works */
 //#define dev_dbg	dev_info
-//#define ESD_OPERATION
+#define ESD_OPERATION
 /*
 #define ESD_TEST
 */
 
-struct ws2401_dpi {
+struct s6d27a1_dpi {
 	struct device				*dev;
 	struct spi_device			*spi;
 	struct mutex				lock;
@@ -101,6 +100,7 @@ struct ws2401_dpi {
 	unsigned int				power;
 	unsigned int				current_brightness;
 	unsigned int				bl;
+	bool					turn_on_backlight;
 	unsigned int				ldi_state;
 	unsigned char				panel_id;
 	bool 					opp_is_requested;
@@ -114,6 +114,7 @@ struct ws2401_dpi {
 #ifdef ESD_OPERATION
 	unsigned int				lcd_connected;
 	unsigned int				esd_enable;
+	bool					esd_processing;
 	unsigned int				esd_port;
 	struct workqueue_struct			*esd_workqueue;
 	struct work_struct			esd_work;
@@ -128,111 +129,111 @@ struct ws2401_dpi {
 };
 
 #ifdef ESD_TEST
-struct ws2401_dpi *pdpi;
+struct s6d27a1_dpi *pdpi;
 #endif
-static const u8 DCS_CMD_SEQ_WS2401_INIT[] = {
+static const u8 DCS_CMD_SEQ_S6D27A1_INIT[] = {
 /*	Length	Command				Parameters */
-	3,	DCS_CMD_WS2401_PASSWD1,		0x5A,	/* Unlock L2 Cmds */
-						0x5A,
-	2,	DCS_CMD_WS2401_RESCTL,		0x12,	/* 480RGB x 800 */
-	/* Flip V(d0), Flip H(d1), RGB/BGR(d3) */
-	2,	DCS_CMD_SET_ADDRESS_MODE,	0x09,
-	/* 0x60=262K Colour(=18 bit/pixel), 0x70=16.7M Colour(=24 bit/pixel) */
-	2,	DCS_CMD_COLMOD,			0x70,
-	7,	DCS_CMD_WS2401_PSMPS,		0x06,
-						0x01,	/* DDVDH:4.6v */
-						0x78,
-						0x06,
-						0x10,
-						0x37,
-	7,	DCS_CMD_WS2401_NSMPS,		0x06,
-						0x01,	/* DDVDL:-4.6v */
-						0x78,
-						0x06,
-						0x12,
-						0x37,
-	3,	DCS_CMD_WS2401_SMPS,		0x02,
-						0x0D,
-	11,	DCS_CMD_WS2401_PWRCTL,		0x10,
-						0xA9,
-						0x00,
-						0x01,
-						0x44,
-						0xF4,	/* VGH:16.1v,
-							VGL:-13.8v */
-						0x50,	/* GREFP:4.2v(dft) */
-						0x50,	/* GREFN:-4.2v(dft) */
-						0x00,
-						0x3C,	/* VOUTL:-10v(dft) */
-	10,	DCS_CMD_WS2401_SRCCTL,		0x03,
-						0x0C,
-						0x00,
-						0x00,
-						0x00,
-						0x01,	/* 2 dot inversion */
-						0x01,
-						0x06,
-						0x00,
-	6,	DCS_CMD_WS2401_PANELCTL, 0x14,
-		0x00,
-		0x80,
-		0x00,
-		0x00,
+	3,	DCS_CMD_S6D27A1_PASSWD_L2,	0x5A, 0x5A,			/* Unlock L2 Cmds */
+	2,	DCS_CMD_S6D27A1_RESCTL,		0x22,				/* 480RGB x 800 */
+	9,	DCS_CMD_S6D27A1_PANELCTL2,	0x00, 0x02, 0x03, 0x04, 0x05,
+						0x08, 0x00, 0x0c,
+	8,	DCS_CMD_S6D27A1_MANPWR,		0x01, 0x00, 0x00, 0x08, 0x08,
+						0x02, 0x00,
+	8,	DCS_CMD_S6D27A1_DISPCTL,	0x19, 0x00, 0x08, 0x0D, 0x03,
+						0x41, 0x3F,
+	11,	DCS_CMD_S6D27A1_PWRCTL1,	0x00, 0x00, 0x00, 0x00, 0x55,
+						0x44, 0x05, 0x88, 0x4B, 0x50,
+	7,	DCS_CMD_S6D27A1_SRCCTL,		0x03, 0x09, 0x8A, 0x00, 0x01,
+						0x16,
+	38,	DCS_CMD_S6D27A1_PANELCTL,	0x00, 0x05, 0x06, 0x07, 0x08,
+						0x01, 0x09, 0x0D, 0x0A, 0x0E,
+						0x0B, 0x0F, 0x0C, 0x10, 0x01,
+						0x11, 0x12, 0x13, 0x14, 0x05,
+						0x06, 0x07, 0x08, 0x01, 0x09,
+						0x0D, 0x0A, 0x0E, 0x0B, 0x0F,
+						0x0C, 0x10, 0x01, 0x11, 0x12,
+						0x13, 0x14,
+/*
+	49,	DCS_CMD_S6D27A1_PGAMMACTL,	0x00, 0x02, 0x01, 0x08, 0x00,
+						0x03, 0x00, 0x0A, 0x0B, 0x10,
+						0x15, 0x15, 0x15, 0x1D, 0x11,
+						0x06, 0x01, 0x02, 0x01, 0x08,
+						0x00, 0x03, 0x00, 0x0B, 0x0C,
+						0x11, 0x15, 0x15, 0x15, 0x1D,
+						0x11, 0x06, 0x2D, 0x02, 0x01,
+						0x08, 0x01, 0x05, 0x01, 0x0E,
+						0x11, 0x19, 0x23, 0x28, 0x31,
+						0x0C, 0x35, 0x2F,
+	49,	DCS_CMD_S6D27A1_NGAMMACTL,	0x00, 0x02, 0x01, 0x08, 0x00,
+						0x03, 0x00, 0x0A, 0x0B, 0x10,
+						0x15, 0x15, 0x15, 0x1D, 0x11,
+						0x06, 0x01, 0x02, 0x01, 0x08,
+						0x00, 0x03, 0x00, 0x0B, 0x0C,
+						0x11, 0x15, 0x15, 0x15, 0x1D,
+						0x11, 0x06, 0x2D, 0x02, 0x01,
+						0x08, 0x01, 0x05, 0x01, 0x0E,
+						0x19, 0x11, 0x23, 0x28, 0x31,
+						0x35, 0x3C, 0x2F,
+*/						
+	3,	DCS_CMD_S6D27A1_PASSWD_L2,	0xA5, 0xA5,
 
 	DCS_CMD_SEQ_END
 };
 
-static const u8 DCS_CMD_SEQ_WS2401_ENABLE_BACKLIGHT_CONTROL[] = {
+static const u8 DCS_CMD_SEQ_S6D27A1_ENABLE_BACKLIGHT_CONTROL[] = {
 /*	Length	Command				Parameters */
-	2,	DCS_CMD_WS2401_WRCTRLD,		0x2C,
+	2,	DCS_CMD_S6D27A1_WRCTRLD,	0x2C,
 	DCS_CMD_SEQ_END
 };
 
-static const u8 DCS_CMD_SEQ_WS2401_DISABLE_BACKLIGHT_CONTROL[] = {
+static const u8 DCS_CMD_SEQ_S6D27A1_DISABLE_BACKLIGHT_CONTROL[] = {
 /*	Length	Command				Parameters */
-	2,	DCS_CMD_WS2401_BCMODE,		0x00,
+	2,	DCS_CMD_S6D27A1_BCMODE,		0x00,
 	DCS_CMD_SEQ_END
 };
 
-static const u8 DCS_CMD_SEQ_WS2401_ENTER_SLEEP_MODE[] = {
+static const u8 DCS_CMD_SEQ_S6D27A1_ENTER_SLEEP_MODE[] = {
 /*	Length	Command				Parameters */
 	1,	DCS_CMD_ENTER_SLEEP_MODE,
 	DCS_CMD_SEQ_END
 };
 
-static const u8 DCS_CMD_SEQ_WS2401_EXIT_SLEEP_MODE[] = {
+static const u8 DCS_CMD_SEQ_S6D27A1_EXIT_SLEEP_MODE[] = {
 /*	Length	Command				Parameters */
 	1,	DCS_CMD_EXIT_SLEEP_MODE,
 	DCS_CMD_SEQ_END
 };
 
-static const u8 DCS_CMD_SEQ_WS2401_DISPLAY_ON[] = {
+static const u8 DCS_CMD_SEQ_S6D27A1_DISPLAY_ON[] = {
 /*	Length	Command				Parameters */
 	1,	DCS_CMD_SET_DISPLAY_ON,
 	DCS_CMD_SEQ_END
 };
 
-static const u8 DCS_CMD_SEQ_WS2401_DISPLAY_OFF[] = {
+static const u8 DCS_CMD_SEQ_S6D27A1_DISPLAY_OFF[] = {
 /*	Length	Command				Parameters */
 	1,	DCS_CMD_SET_DISPLAY_OFF,
 	DCS_CMD_SEQ_END
 };
 
-static const u8 DCS_CMD_SEQ_WS2401_ORIENT_0[] = {
+static const u8 DCS_CMD_SEQ_S6D27A1_ORIENT_0[] = {
 /*	Length	Command				Parameters */
 	/* Flip V(d0), Flip H(d1), RGB/BGR(d3) */
 	2,	DCS_CMD_SET_ADDRESS_MODE,	0x09,
 	DCS_CMD_SEQ_END
 };
 
-static const u8 DCS_CMD_SEQ_WS2401_ORIENT_180[] = {
+static const u8 DCS_CMD_SEQ_S6D27A1_ORIENT_180[] = {
 /*	Length	Command				Parameters */
 	/* Flip V(d0), Flip H(d1), RGB/BGR(d3) */
 	2,	DCS_CMD_SET_ADDRESS_MODE,	0x0A,
 	DCS_CMD_SEQ_END
 };
 
-static int ws2401_write_dcs_sequence(struct ws2401_dpi *lcd, const u8 *p_seq);
+extern unsigned int battpwroff_charging;
+extern u32 sec_bootmode;
+
+static int s6d27a1_write_dcs_sequence(struct s6d27a1_dpi *lcd, const u8 *p_seq);
 
 static void print_vmode(struct device *dev, struct mcde_video_mode *vmode)
 {
@@ -261,10 +262,8 @@ static int try_video_mode(struct mcde_display_device *ddev,
 		return res;
 	}
 
-	if ((video_mode->xres == VMODE_XRES &&
-		video_mode->yres == VMODE_YRES) ||
-	    (video_mode->xres == VMODE_YRES &&
-		video_mode->yres == VMODE_XRES)) {
+	if ((video_mode->xres == VMODE_XRES && video_mode->yres == VMODE_YRES) ||
+	    (video_mode->xres == VMODE_YRES && video_mode->yres == VMODE_XRES)) {
 
 		video_mode->hsw		= pdata->video_mode.hsw;
 		video_mode->hbp		= pdata->video_mode.hbp;
@@ -299,7 +298,7 @@ static int set_video_mode(struct mcde_display_device *ddev,
 	struct mcde_video_mode channel_video_mode;
 	static int first_call = 1;
 
-	struct ws2401_dpi *lcd = dev_get_drvdata(&ddev->dev);
+	struct s6d27a1_dpi *lcd = dev_get_drvdata(&ddev->dev);
 
 	if (ddev == NULL || video_mode == NULL) {
 		dev_warn(&ddev->dev, "%s:ddev = NULL or video_mode = NULL\n",
@@ -308,10 +307,8 @@ static int set_video_mode(struct mcde_display_device *ddev,
 	}
 	ddev->video_mode = *video_mode;
 	print_vmode(&ddev->dev, video_mode);
-	if ((video_mode->xres == VMODE_XRES &&
-		video_mode->yres == VMODE_YRES) ||
-	    (video_mode->xres == VMODE_YRES &&
-		video_mode->yres == VMODE_XRES))
+	if ((video_mode->xres == VMODE_XRES && video_mode->yres == VMODE_YRES) ||
+	    (video_mode->xres == VMODE_YRES && video_mode->yres == VMODE_XRES))
 		res = 0;
 
 	if (res < 0) {
@@ -322,8 +319,7 @@ static int set_video_mode(struct mcde_display_device *ddev,
 
 	channel_video_mode = ddev->video_mode;
 	/* Dependant on if display should rotate or MCDE should rotate */
-	if (ddev->rotation == MCDE_DISPLAY_ROT_90_CCW ||
-		ddev->rotation == MCDE_DISPLAY_ROT_90_CW) {
+	if (ddev->rotation == MCDE_DISPLAY_ROT_90_CCW || ddev->rotation == MCDE_DISPLAY_ROT_90_CW) {
 		channel_video_mode.xres = ddev->native_x_res;
 		channel_video_mode.yres = ddev->native_y_res;
 	}
@@ -350,11 +346,11 @@ error:
 	return res;
 }
 
-static void ws2401_request_opp(struct ws2401_dpi *lcd)
+static void s6d27a1_request_opp(struct s6d27a1_dpi *lcd)
 {
 	if ((!lcd->opp_is_requested) && (lcd->pd->min_ddr_opp > 0)) {
 		if (prcmu_qos_add_requirement(PRCMU_QOS_DDR_OPP,
-						LCD_DRIVER_NAME_WS2401,
+						LCD_DRIVER_NAME_S6D27A1,
 						lcd->pd->min_ddr_opp)) {
 			dev_err(lcd->dev, "add DDR OPP %d failed\n",
 				lcd->pd->min_ddr_opp);
@@ -364,22 +360,62 @@ static void ws2401_request_opp(struct ws2401_dpi *lcd)
 	}
 }
 
-static void ws2401_release_opp(struct ws2401_dpi *lcd)
+static void s6d27a1_release_opp(struct s6d27a1_dpi *lcd)
 {
 	if (lcd->opp_is_requested) {
-		prcmu_qos_remove_requirement(PRCMU_QOS_DDR_OPP, LCD_DRIVER_NAME_WS2401);
+		prcmu_qos_remove_requirement(PRCMU_QOS_DDR_OPP, LCD_DRIVER_NAME_S6D27A1);
 		lcd->opp_is_requested = false;
 		dev_dbg(lcd->dev, "DDR OPP removed\n");
 	}
 }
 
-static int ws2401_set_rotation(struct mcde_display_device *ddev,
+/* Reverse order of power on and channel update as compared with MCDE default display update */
+static int s6d27a1_display_update(struct mcde_display_device *ddev,
+							bool tripple_buffer)
+{
+	int ret = 0;
+	struct s6d27a1_dpi *lcd = dev_get_drvdata(&ddev->dev);
+
+	/*Protection code for  power on /off test */
+	if((lcd->dev <= 0) || (lcd->mdd <= 0) || (lcd->dev->platform_data <= 0))
+		return ret;
+
+	if (ddev->power_mode != MCDE_DISPLAY_PM_ON && ddev->set_power_mode) {
+		ret = ddev->set_power_mode(ddev, MCDE_DISPLAY_PM_ON);
+		if (ret < 0) {
+			dev_warn(&ddev->dev,
+				"%s:Failed to set power mode to on\n",
+				__func__);
+			return ret;
+		}
+	}
+
+	ret = mcde_chnl_update(ddev->chnl_state, tripple_buffer);
+	if (ret < 0) {
+		dev_warn(&ddev->dev, "%s:Failed to update channel\n", __func__);
+		return ret;
+	}
+	if (lcd->turn_on_backlight == false){
+
+		lcd->turn_on_backlight = true;
+		/* Allow time for one frame to be sent to the display before switching on the backlight */
+		if (lcd->pd->bl_on_off) {
+			lcd->pd->bl_on_off(false);			
+			msleep(20);
+			lcd->pd->bl_on_off(true);			
+		}
+	}
+		
+	return 0;
+}
+
+static int s6d27a1_set_rotation(struct mcde_display_device *ddev,
 	enum mcde_display_rotation rotation)
 {
 	static int notFirstTime;
 	int ret = 0;
 	enum mcde_display_rotation final;
-	struct ws2401_dpi *lcd = dev_get_drvdata(&ddev->dev);
+	struct s6d27a1_dpi *lcd = dev_get_drvdata(&ddev->dev);
 	enum mcde_hw_rotation final_hw_rot;
 
 	final = (360 + rotation - ddev->orientation) % 360;
@@ -401,14 +437,14 @@ static int ws2401_set_rotation(struct mcde_display_device *ddev,
 	if (rotation != ddev->rotation) {
 		if (final == MCDE_DISPLAY_ROT_180) {
 			if (final != lcd->rotation) {
-				ret = ws2401_write_dcs_sequence(lcd,
-						DCS_CMD_SEQ_WS2401_ORIENT_180);
+				ret = s6d27a1_write_dcs_sequence(lcd,
+						DCS_CMD_SEQ_S6D27A1_ORIENT_180);
 				lcd->rotation = final;
 			}
 		} else if (final == MCDE_DISPLAY_ROT_0) {
 			if (final != lcd->rotation) {
-				ret = ws2401_write_dcs_sequence(lcd,
-						DCS_CMD_SEQ_WS2401_ORIENT_0);
+				ret = s6d27a1_write_dcs_sequence(lcd,
+						DCS_CMD_SEQ_S6D27A1_ORIENT_0);
 				lcd->rotation = final;
 			}
 			(void)mcde_chnl_set_rotation(ddev->chnl_state, final_hw_rot);
@@ -429,7 +465,7 @@ static int ws2401_set_rotation(struct mcde_display_device *ddev,
 }
 
 
-static int ws2401_spi_write_byte(struct ws2401_dpi *lcd, int addr, int data)
+static int s6d27a1_spi_write_byte(struct s6d27a1_dpi *lcd, int addr, int data)
 {
 	u16 buf;
 	struct spi_message msg;
@@ -447,7 +483,7 @@ static int ws2401_spi_write_byte(struct ws2401_dpi *lcd, int addr, int data)
 	return spi_sync(lcd->spi, &msg);
 }
 
-static int ws2401_spi_read_byte(struct ws2401_dpi *lcd, int command, u8 *data)
+static int s6d27a1_spi_read_byte(struct s6d27a1_dpi *lcd, int command, u8 *data)
 {
 	u16 buf[2];
 	u16 rbuf[2];
@@ -475,7 +511,7 @@ static int ws2401_spi_read_byte(struct ws2401_dpi *lcd, int command, u8 *data)
 }
 
 
-static int ws2401_write_dcs_sequence(struct ws2401_dpi *lcd, const u8 *p_seq)
+static int s6d27a1_write_dcs_sequence(struct s6d27a1_dpi *lcd, const u8 *p_seq)
 {
 	int ret = 0;
 	int num_params;
@@ -488,14 +524,14 @@ static int ws2401_write_dcs_sequence(struct ws2401_dpi *lcd, const u8 *p_seq)
 			msleep(p_seq[1]);
 			p_seq += 2;
 		} else {
-			ret = ws2401_spi_write_byte(lcd,
+			ret = s6d27a1_spi_write_byte(lcd,
 						SPI_COMMAND, p_seq[1]);
 
 			num_params = p_seq[0] - 1;
 			param_count = 0;
 
 			while ((param_count < num_params) & !ret) {
-				ret = ws2401_spi_write_byte(lcd,
+				ret = s6d27a1_spi_write_byte(lcd,
 					SPI_DATA, p_seq[param_count + 2]);
 				param_count++;
 			}
@@ -513,60 +549,57 @@ static int ws2401_write_dcs_sequence(struct ws2401_dpi *lcd, const u8 *p_seq)
 }
 
 
-static int ws2401_dpi_read_panel_id(struct ws2401_dpi *lcd, u8 *idbuf)
+static int s6d27a1_dpi_read_panel_id(struct s6d27a1_dpi *lcd, u8 *idbuf)
 {
 	int ret;
 
-	ret = ws2401_spi_read_byte(lcd, DCS_CMD_WS2401_READID1, &idbuf[0]);
-	ret |= ws2401_spi_read_byte(lcd, DCS_CMD_WS2401_READID2, &idbuf[1]);
-	ret |= ws2401_spi_read_byte(lcd, DCS_CMD_WS2401_READID3, &idbuf[2]);
+	ret = s6d27a1_spi_read_byte(lcd, DCS_CMD_S6D27A1_READID1, &idbuf[0]);
+	ret |= s6d27a1_spi_read_byte(lcd, DCS_CMD_S6D27A1_READID2, &idbuf[1]);
+	ret |= s6d27a1_spi_read_byte(lcd, DCS_CMD_S6D27A1_READID3, &idbuf[2]);
 
 	return ret;
 }
 
-static int ws2401_dpi_ldi_init(struct ws2401_dpi *lcd)
+static int s6d27a1_dpi_ldi_init(struct s6d27a1_dpi *lcd)
 {
 	int ret;
 
-	ret = ws2401_write_dcs_sequence(lcd,
-				DCS_CMD_SEQ_WS2401_EXIT_SLEEP_MODE);
+	ret = s6d27a1_write_dcs_sequence(lcd,
+				DCS_CMD_SEQ_S6D27A1_EXIT_SLEEP_MODE);
 
 	if (lcd->pd->sleep_out_delay)
 		msleep(lcd->pd->sleep_out_delay);
 
-	ret |= ws2401_write_dcs_sequence(lcd, DCS_CMD_SEQ_WS2401_INIT);
+	ret |= s6d27a1_write_dcs_sequence(lcd, DCS_CMD_SEQ_S6D27A1_INIT);
 
 
 	if (lcd->pd->bl_ctrl)
-		ret |= ws2401_write_dcs_sequence(lcd,
-				DCS_CMD_SEQ_WS2401_ENABLE_BACKLIGHT_CONTROL);
+		ret |= s6d27a1_write_dcs_sequence(lcd,
+				DCS_CMD_SEQ_S6D27A1_ENABLE_BACKLIGHT_CONTROL);
 	else
-		ret |= ws2401_write_dcs_sequence(lcd,
-				DCS_CMD_SEQ_WS2401_DISABLE_BACKLIGHT_CONTROL);
+		ret |= s6d27a1_write_dcs_sequence(lcd,
+				DCS_CMD_SEQ_S6D27A1_DISABLE_BACKLIGHT_CONTROL);
 
 	return ret;
 }
 
-static int ws2401_dpi_ldi_enable(struct ws2401_dpi *lcd)
+static int s6d27a1_dpi_ldi_enable(struct s6d27a1_dpi *lcd)
 {
 	int ret = 0;
-	dev_dbg(lcd->dev, "ws2401_dpi_ldi_enable\n");
+	dev_dbg(lcd->dev, "s6d27a1_dpi_ldi_enable\n");
 
-	ret |= ws2401_write_dcs_sequence(lcd, DCS_CMD_SEQ_WS2401_DISPLAY_ON);
-
-	if (!ret)
-		lcd->ldi_state = LDI_STATE_ON;
+	ret |= s6d27a1_write_dcs_sequence(lcd, DCS_CMD_SEQ_S6D27A1_DISPLAY_ON);
 
 	return ret;
 }
 
-static int ws2401_dpi_ldi_disable(struct ws2401_dpi *lcd)
+static int s6d27a1_dpi_ldi_disable(struct s6d27a1_dpi *lcd)
 {
 	int ret;
 
-	dev_dbg(lcd->dev, "ws2401_dpi_ldi_disable\n");
-	ret = ws2401_write_dcs_sequence(lcd,
-				DCS_CMD_SEQ_WS2401_ENTER_SLEEP_MODE);
+	dev_dbg(lcd->dev, "s6d27a1_dpi_ldi_disable\n");
+	ret = s6d27a1_write_dcs_sequence(lcd,
+				DCS_CMD_SEQ_S6D27A1_ENTER_SLEEP_MODE);
 
 	if (lcd->pd->sleep_in_delay)
 		msleep(lcd->pd->sleep_in_delay);
@@ -574,36 +607,36 @@ static int ws2401_dpi_ldi_disable(struct ws2401_dpi *lcd)
 	return ret;
 }
 
-static int ws2401_update_brightness(struct ws2401_dpi *lcd)
+static int s6d27a1_update_brightness(struct s6d27a1_dpi *lcd)
 {
 	int ret = 0;
 
-	u8 DCS_CMD_SEQ_WS2401_UPDATE_BRIGHTNESS[] = {
+	u8 DCS_CMD_SEQ_S6D27A1_UPDATE_BRIGHTNESS[] = {
 	/*	Length	Command				Parameters */
-		2,	DCS_CMD_WS2401_WRDISBV,		0x00,
+		2,	DCS_CMD_S6D27A1_WRDISBV,		0x00,
 		DCS_CMD_SEQ_END
 	};
 
 	if (lcd->pd->bl_ctrl) {
-		DCS_CMD_SEQ_WS2401_UPDATE_BRIGHTNESS[2] = lcd->bl;
-		ret = ws2401_write_dcs_sequence(lcd,
-				DCS_CMD_SEQ_WS2401_UPDATE_BRIGHTNESS);
+		DCS_CMD_SEQ_S6D27A1_UPDATE_BRIGHTNESS[2] = lcd->bl;
+		ret = s6d27a1_write_dcs_sequence(lcd,
+				DCS_CMD_SEQ_S6D27A1_UPDATE_BRIGHTNESS);
 	}
 
 	return ret;
 }
 
 
-static int ws2401_dpi_power_on(struct ws2401_dpi *lcd)
+static int s6d27a1_dpi_power_on(struct s6d27a1_dpi *lcd)
 {
 	int ret = 0;
 	struct ssg_dpi_display_platform_data *dpd = NULL;
 
-	ws2401_request_opp(lcd);
+	s6d27a1_request_opp(lcd);
 
 	dpd = lcd->pd;
 	if (!dpd) {
-		dev_err(lcd->dev, "ws2401_dpi platform data is NULL.\n");
+		dev_err(lcd->dev, "s6d27a1_dpi platform data is NULL.\n");
 		return -EFAULT;
 	}
 
@@ -619,31 +652,61 @@ static int ws2401_dpi_power_on(struct ws2401_dpi *lcd)
 	dpd->reset(dpd);
 	msleep(dpd->reset_delay);
 
-	ret = ws2401_dpi_ldi_init(lcd);
+	ret = s6d27a1_dpi_ldi_init(lcd);
 	if (ret) {
 		dev_err(lcd->dev, "failed to initialize ldi.\n");
 		return ret;
 	}
 	dev_dbg(lcd->dev, "ldi init successful\n");
 
-	ret = ws2401_dpi_ldi_enable(lcd);
+	ret = s6d27a1_dpi_ldi_enable(lcd);
 	if (ret) {
 		dev_err(lcd->dev, "failed to enable ldi.\n");
 		return ret;
 	}
 	dev_dbg(lcd->dev, "ldi enable successful\n");
 
-	ws2401_update_brightness(lcd);
+	s6d27a1_update_brightness(lcd);
+
+#ifdef ESD_OPERATION
+	if (lcd->lcd_connected)
+		enable_irq(GPIO_TO_IRQ(lcd->esd_port));
+
+	if (lcd->lcd_connected) {
+		irq_set_irq_type(GPIO_TO_IRQ(lcd->esd_port), IRQF_TRIGGER_RISING);
+		lcd->esd_enable = 1;
+		pr_info("%s change lcd->esd_enable :%d \n", __func__,
+				lcd->esd_enable);
+	} else
+		pr_info("%s lcd_connected : %d \n", __func__, lcd->lcd_connected);
+#endif
 
 	return 0;
 }
 
-static int ws2401_dpi_power_off(struct ws2401_dpi *lcd)
+static int s6d27a1_dpi_power_off(struct s6d27a1_dpi *lcd)
 {
 	int ret = 0;
 	struct ssg_dpi_display_platform_data *dpd = NULL;
 
-	dev_dbg(lcd->dev, "ws2401_dpi_power_off\n");
+	dev_dbg(lcd->dev, "s6d27a1_dpi_power_off \n");
+
+#ifdef ESD_OPERATION
+	if (lcd->esd_enable) {
+
+		lcd->esd_enable = 0;
+		irq_set_irq_type(GPIO_TO_IRQ(lcd->esd_port), IRQF_TRIGGER_NONE);
+		disable_irq_nosync(GPIO_TO_IRQ(lcd->esd_port));
+
+		if (!list_empty(&(lcd->esd_work.entry))) {
+			cancel_work_sync(&(lcd->esd_work));
+			pr_info("%s cancel_work_sync", __func__);
+		}
+
+		pr_info("%s change lcd->esd_enable :%d\n", __func__,
+				lcd->esd_enable);
+	}
+#endif
 
 	dpd = lcd->pd;
 	if (!dpd) {
@@ -651,7 +714,7 @@ static int ws2401_dpi_power_off(struct ws2401_dpi *lcd)
 		return -EFAULT;
 	}
 
-	ret = ws2401_dpi_ldi_disable(lcd);
+	ret = s6d27a1_dpi_ldi_disable(lcd);
 	if (ret) {
 		dev_err(lcd->dev, "lcd setting failed.\n");
 		return -EIO;
@@ -669,12 +732,12 @@ static int ws2401_dpi_power_off(struct ws2401_dpi *lcd)
 	} else
 		dpd->power_on(dpd, LCD_POWER_DOWN);
 
-	ws2401_release_opp(lcd);
+	s6d27a1_release_opp(lcd);
 
 	return 0;
 }
 
-static int ws2401_dpi_power(struct ws2401_dpi *lcd, int power)
+static int s6d27a1_dpi_power(struct s6d27a1_dpi *lcd, int power)
 {
 	int ret = 0;
 
@@ -684,9 +747,9 @@ static int ws2401_dpi_power(struct ws2401_dpi *lcd, int power)
 		);
 
 	if (POWER_IS_ON(power) && !POWER_IS_ON(lcd->power))
-		ret = ws2401_dpi_power_on(lcd);
+		ret = s6d27a1_dpi_power_on(lcd);
 	else if (!POWER_IS_ON(power) && POWER_IS_ON(lcd->power))
-		ret = ws2401_dpi_power_off(lcd);
+		ret = s6d27a1_dpi_power_off(lcd);
 	if (!ret)
 		lcd->power = power;
 
@@ -696,32 +759,36 @@ static int ws2401_dpi_power(struct ws2401_dpi *lcd, int power)
 #ifdef ESD_OPERATION
 static void esd_work_func(struct work_struct *work)
 {
-	struct ws2401_dpi *lcd = container_of(work,
-					struct ws2401_dpi, esd_work);
+	struct s6d27a1_dpi *lcd = container_of(work,
+					struct s6d27a1_dpi, esd_work);
 
-	pr_info("%s lcd->esd_enable:%d start\n", __func__, lcd->esd_enable);
+	if (lcd->esd_enable && !lcd->esd_processing && !battpwroff_charging
+						&& (sec_bootmode != 2)) {
 
-	if (lcd->esd_enable) {
-		ws2401_dpi_power_off(lcd);
-		ws2401_dpi_power_on(lcd);
+		pr_info("%s lcd->esd_enable:%d start\n", __func__,
+						lcd->esd_enable);
+		lcd->esd_processing = true;
+		s6d27a1_dpi_power_off(lcd);
+		s6d27a1_dpi_power_on(lcd);
+		lcd->esd_processing = false;
 
 		/* low is normal. On PBA esd_port could be HIGH */
 		if (gpio_get_value(lcd->esd_port)) {
 			pr_info("%s esd_work_func re-armed\n", __func__);
 			queue_work(lcd->esd_workqueue, &(lcd->esd_work));
 		}
+		pr_info("%s end\n", __func__);		
 	}
-
-	pr_info("%s end\n", __func__);
 }
 
 static irqreturn_t esd_interrupt_handler(int irq, void *data)
 {
-	struct ws2401_dpi *lcd = data;
+	struct s6d27a1_dpi *lcd = data;
 
-	pr_info("%s lcd->esd_enable :%d\n", __func__, lcd->esd_enable);
+	if (lcd->esd_enable && !lcd->esd_processing && !battpwroff_charging
+						&& (sec_bootmode != 2)) {
 
-	if (lcd->esd_enable) {
+		pr_info("%s lcd->esd_enable :%d\n", __func__, lcd->esd_enable);		
 		if (list_empty(&(lcd->esd_work.entry)))
 			queue_work(lcd->esd_workqueue, &(lcd->esd_work));
 		else
@@ -731,9 +798,9 @@ static irqreturn_t esd_interrupt_handler(int irq, void *data)
 	return IRQ_HANDLED;
 }
 #endif
-static int ws2401_dpi_set_power(struct lcd_device *ld, int power)
+static int s6d27a1_dpi_set_power(struct lcd_device *ld, int power)
 {
-	struct ws2401_dpi *lcd = lcd_get_data(ld);
+	struct s6d27a1_dpi *lcd = lcd_get_data(ld);
 
 	if (power != FB_BLANK_UNBLANK && power != FB_BLANK_POWERDOWN &&
 		power != FB_BLANK_NORMAL) {
@@ -741,40 +808,40 @@ static int ws2401_dpi_set_power(struct lcd_device *ld, int power)
 		return -EINVAL;
 	}
 
-	return ws2401_dpi_power(lcd, power);
+	return s6d27a1_dpi_power(lcd, power);
 }
 
-static int ws2401_dpi_get_power(struct lcd_device *ld)
+static int s6d27a1_dpi_get_power(struct lcd_device *ld)
 {
-	struct ws2401_dpi *lcd = lcd_get_data(ld);
+	struct s6d27a1_dpi *lcd = lcd_get_data(ld);
 
 	return lcd->power;
 }
 
-static struct lcd_ops ws2401_dpi_lcd_ops = {
-	.set_power = ws2401_dpi_set_power,
-	.get_power = ws2401_dpi_get_power,
+static struct lcd_ops s6d27a1_dpi_lcd_ops = {
+	.set_power = s6d27a1_dpi_set_power,
+	.get_power = s6d27a1_dpi_get_power,
 };
 
 
 /* This structure defines all the properties of a backlight */
-struct backlight_properties ws2401_dpi_backlight_props = {
+struct backlight_properties s6d27a1_dpi_backlight_props = {
 	.brightness	= DEFAULT_BRIGHTNESS,
 	.max_brightness = MAX_BRIGHTNESS,
 	.type = BACKLIGHT_RAW,
 };
 
-static int ws2401_dpi_get_brightness(struct backlight_device *bd)
+static int s6d27a1_dpi_get_brightness(struct backlight_device *bd)
 {
 	dev_dbg(&bd->dev, "lcd get brightness returns %d\n",
 		bd->props.brightness);
 	return bd->props.brightness;
 }
 
-static int ws2401_dpi_set_brightness(struct backlight_device *bd)
+static int s6d27a1_dpi_set_brightness(struct backlight_device *bd)
 {
 	int ret = 0, bl = bd->props.brightness;
-	struct ws2401_dpi *lcd = bl_get_data(bd);
+	struct s6d27a1_dpi *lcd = bl_get_data(bd);
 
 	if ((bl < MIN_BRIGHTNESS) || (bl > bd->props.max_brightness)) {
 		dev_err(&bd->dev, "lcd brightness should be %d to %d.\n",
@@ -783,7 +850,7 @@ static int ws2401_dpi_set_brightness(struct backlight_device *bd)
 	}
 
 	if ((lcd->ldi_state) && (lcd->current_brightness != lcd->bl)) {
-		ret = ws2401_update_brightness(lcd);
+		ret = s6d27a1_update_brightness(lcd);
 		dev_info(lcd->dev, "brightness=%d, bl=%d\n",
 			bd->props.brightness, lcd->bl);
 		if (ret < 0)
@@ -793,52 +860,52 @@ static int ws2401_dpi_set_brightness(struct backlight_device *bd)
 	return ret;
 }
 
-static const struct backlight_ops ws2401_dpi_backlight_ops  = {
-	.get_brightness = ws2401_dpi_get_brightness,
-	.update_status = ws2401_dpi_set_brightness,
+static const struct backlight_ops s6d27a1_dpi_backlight_ops  = {
+	.get_brightness = s6d27a1_dpi_get_brightness,
+	.update_status = s6d27a1_dpi_set_brightness,
 };
 
-static ssize_t ws2401_dpi_sysfs_store_lcd_power(struct device *dev,
+static ssize_t s6d27a1_dpi_sysfs_store_lcd_power(struct device *dev,
 						struct device_attribute *attr,
 						const char *buf, size_t len)
 {
 	int rc;
 	int lcd_enable;
-	struct ws2401_dpi *lcd = dev_get_drvdata(dev);
+	struct s6d27a1_dpi *lcd = dev_get_drvdata(dev);
 
-	dev_info(lcd->dev, "ws2401_dpi lcd_sysfs_store_lcd_power\n");
+	dev_info(lcd->dev, "s6d27a1_dpi lcd_sysfs_store_lcd_power\n");
 
 	rc = strict_strtoul(buf, 0, (unsigned long *)&lcd_enable);
 	if (rc < 0)
 		return rc;
 
 	if (lcd_enable)
-		ws2401_dpi_power(lcd, FB_BLANK_UNBLANK);
+		s6d27a1_dpi_power(lcd, FB_BLANK_UNBLANK);
 	else
-		ws2401_dpi_power(lcd, FB_BLANK_POWERDOWN);
+		s6d27a1_dpi_power(lcd, FB_BLANK_POWERDOWN);
 
 	return len;
 }
 
-static DEVICE_ATTR(lcd_power, 0664,
-		NULL, ws2401_dpi_sysfs_store_lcd_power);
+static DEVICE_ATTR(lcd_power, 0444,
+		NULL, s6d27a1_dpi_sysfs_store_lcd_power);
 
 static ssize_t lcd_type_show(struct device *dev,
 				struct device_attribute *attr,
 				char *buf)
 {
-		return sprintf(buf, "SMD_LMS380KF01\n");
+		return sprintf(buf, "SMD_S6D27A1\n");
 }
-static DEVICE_ATTR(lcd_type, 0444, lcd_type_show, NULL);
+static DEVICE_ATTR(lcd_type, 0664, lcd_type_show, NULL);
 
 static ssize_t panel_id_show(struct device *dev,
 				struct device_attribute *attr,
 				char *buf)
 {
-	struct ws2401_dpi *lcd = dev_get_drvdata(dev);
+	struct s6d27a1_dpi *lcd = dev_get_drvdata(dev);
 	u8 idbuf[3];
 
-	if (ws2401_dpi_read_panel_id(lcd, idbuf)) {
+	if (s6d27a1_dpi_read_panel_id(lcd, idbuf)) {
 		dev_err(lcd->dev, "Failed to read panel id\n");
 		return sprintf(buf, "Failed to read panel id");
 	} else {
@@ -849,9 +916,9 @@ static ssize_t panel_id_show(struct device *dev,
 static DEVICE_ATTR(panel_id, 0664, panel_id_show, NULL);
 
 #ifdef CONFIG_HAS_EARLYSUSPEND
-static void ws2401_dpi_mcde_early_suspend(
+static void s6d27a1_dpi_mcde_early_suspend(
 			struct early_suspend *earlysuspend);
-static void ws2401_dpi_mcde_late_resume(
+static void s6d27a1_dpi_mcde_late_resume(
 			struct early_suspend *earlysuspend);
 #endif
 
@@ -871,17 +938,17 @@ static void est_test_timer_func(unsigned long data)
 }
 #endif
 #endif
-static int __init ws2401_dpi_spi_probe(struct spi_device *spi)
+static int __init s6d27a1_dpi_spi_probe(struct spi_device *spi)
 {
 	int ret = 0;
-	struct ws2401_dpi *lcd = container_of(spi->dev.driver,
-					 struct ws2401_dpi, spi_drv.driver);
+	struct s6d27a1_dpi *lcd = container_of(spi->dev.driver,
+					 struct s6d27a1_dpi, spi_drv.driver);
 
-	dev_dbg(&spi->dev, "panel ws2401_dpi spi being probed\n");
+	dev_dbg(&spi->dev, "panel s6d27a1_dpi spi being probed\n");
 
 	dev_set_drvdata(&spi->dev, lcd);
 
-	/* ws2401_dpi lcd panel uses 3-wire 9bits SPI Mode. */
+	/* s6d27a1_dpi lcd panel uses 3-wire 9bits SPI Mode. */
 	spi->bits_per_word = 9;
 
 	ret = spi_setup(spi);
@@ -904,7 +971,7 @@ static int __init ws2401_dpi_spi_probe(struct spi_device *spi)
 		 */
 		lcd->power = FB_BLANK_POWERDOWN;
 
-		ws2401_dpi_power(lcd, FB_BLANK_UNBLANK);
+		s6d27a1_dpi_power(lcd, FB_BLANK_UNBLANK);
 	}
 
 #ifdef ESD_OPERATION
@@ -937,6 +1004,7 @@ static int __init ws2401_dpi_spi_probe(struct spi_device *spi)
 			lcd->lcd_connected = 0;
 		}
 	}
+	lcd->esd_processing = false;
 
 	dev_info(lcd->dev, "esd work success\n");
 
@@ -947,17 +1015,17 @@ static int __init ws2401_dpi_spi_probe(struct spi_device *spi)
 #endif
 #endif
 
-	dev_dbg(&spi->dev, "ws2401_dpi spi has been probed.\n");
+	dev_dbg(&spi->dev, "s6d27a1_dpi spi has been probed.\n");
 
 out:
 	return ret;
 }
 
-static int __devinit ws2401_dpi_mcde_probe(
+static int __devinit s6d27a1_dpi_mcde_probe(
 				struct mcde_display_device *ddev)
 {
 	int ret = 0;
-	struct ws2401_dpi *lcd = NULL;
+	struct s6d27a1_dpi *lcd = NULL;
 	struct backlight_device *bd = NULL;
 	struct ssg_dpi_display_platform_data *pdata = ddev->dev.platform_data;
 
@@ -982,9 +1050,10 @@ static int __devinit ws2401_dpi_mcde_probe(
 
 	ddev->try_video_mode = try_video_mode;
 	ddev->set_video_mode = set_video_mode;
-	ddev->set_rotation = ws2401_set_rotation;
+	/* ddev->update = s6d27a1_display_update; */
+	ddev->set_rotation = s6d27a1_set_rotation;
 
-	lcd = kzalloc(sizeof(struct ws2401_dpi), GFP_KERNEL);
+	lcd = kzalloc(sizeof(struct s6d27a1_dpi), GFP_KERNEL);
 	if (!lcd)
 		return -ENOMEM;
 
@@ -994,13 +1063,13 @@ static int __devinit ws2401_dpi_mcde_probe(
 	lcd->mdd = ddev;
 	lcd->dev = &ddev->dev;
 	lcd->pd = pdata;
-
+	lcd->turn_on_backlight = false;
 	lcd->opp_is_requested = false;
-	ws2401_request_opp(lcd);
+	s6d27a1_request_opp(lcd);
 
 #ifdef CONFIG_LCD_CLASS_DEVICE
 	lcd->ld = lcd_device_register("panel", &ddev->dev,
-					lcd, &ws2401_dpi_lcd_ops);
+					lcd, &s6d27a1_dpi_lcd_ops);
 	if (IS_ERR(lcd->ld)) {
 		ret = PTR_ERR(lcd->ld);
 		goto out_free_lcd;
@@ -1022,8 +1091,8 @@ static int __devinit ws2401_dpi_mcde_probe(
 		bd = backlight_device_register("panel",
 						&ddev->dev,
 						lcd,
-						&ws2401_dpi_backlight_ops,
-						&ws2401_dpi_backlight_props);
+						&s6d27a1_dpi_backlight_ops,
+						&s6d27a1_dpi_backlight_props);
 		if (IS_ERR(bd)) {
 			ret =  PTR_ERR(bd);
 			goto out_backlight_unregister;
@@ -1040,7 +1109,7 @@ static int __devinit ws2401_dpi_mcde_probe(
 	lcd->spi_drv.driver.name	= "pri_lcd_spi";
 	lcd->spi_drv.driver.bus		= &spi_bus_type;
 	lcd->spi_drv.driver.owner	= THIS_MODULE;
-	lcd->spi_drv.probe		= ws2401_dpi_spi_probe;
+	lcd->spi_drv.probe		= s6d27a1_dpi_spi_probe;
 	ret = spi_register_driver(&lcd->spi_drv);
 	if (ret < 0) {
 		dev_err(&(ddev->dev), "Failed to register SPI driver");
@@ -1049,8 +1118,8 @@ static int __devinit ws2401_dpi_mcde_probe(
 
 #ifdef CONFIG_HAS_EARLYSUSPEND
 	lcd->earlysuspend.level   = EARLY_SUSPEND_LEVEL_DISABLE_FB - 1;
-	lcd->earlysuspend.suspend = ws2401_dpi_mcde_early_suspend;
-	lcd->earlysuspend.resume  = ws2401_dpi_mcde_late_resume;
+	lcd->earlysuspend.suspend = s6d27a1_dpi_mcde_early_suspend;
+	lcd->earlysuspend.resume  = s6d27a1_dpi_mcde_late_resume;
 	register_early_suspend(&lcd->earlysuspend);
 #endif
 
@@ -1070,13 +1139,13 @@ out:
 	return ret;
 }
 
-static int __devexit ws2401_dpi_mcde_remove(
+static int __devexit s6d27a1_dpi_mcde_remove(
 				struct mcde_display_device *ddev)
 {
-	struct ws2401_dpi *lcd = dev_get_drvdata(&ddev->dev);
+	struct s6d27a1_dpi *lcd = dev_get_drvdata(&ddev->dev);
 
 	dev_dbg(&ddev->dev, "Invoked %s\n", __func__);
-	ws2401_dpi_power(lcd, FB_BLANK_POWERDOWN);
+	s6d27a1_dpi_power(lcd, FB_BLANK_POWERDOWN);
 
 	if (lcd->pd->bl_ctrl)
 		backlight_device_unregister(lcd->bd);
@@ -1087,37 +1156,26 @@ static int __devexit ws2401_dpi_mcde_remove(
 	return 0;
 }
 
-static void ws2401_dpi_mcde_shutdown(struct mcde_display_device *ddev)
+static void s6d27a1_dpi_mcde_shutdown(struct mcde_display_device *ddev)
 {
-	struct ws2401_dpi *lcd = dev_get_drvdata(&ddev->dev);
+	struct s6d27a1_dpi *lcd = dev_get_drvdata(&ddev->dev);
 
 	dev_dbg(&ddev->dev, "Invoked %s\n", __func__);
+	mutex_lock(&ddev->display_lock);
+	s6d27a1_dpi_power(lcd, FB_BLANK_POWERDOWN);
+#ifdef CONFIG_HAS_EARLYSUSPEND
+	unregister_early_suspend(&lcd->earlysuspend);
+#endif
 
-	#ifdef ESD_OPERATION
-	if (lcd->esd_enable) {
-
-		lcd->esd_enable = 0;
-		disable_irq_nosync(GPIO_TO_IRQ(lcd->esd_port));
-
-		if (!list_empty(&(lcd->esd_work.entry))) {
-			cancel_work_sync(&(lcd->esd_work));
-			pr_info("%s cancel_work_sync", __func__);
-		}
-
-		destroy_workqueue(lcd->esd_workqueue);
-	}
-	#endif
-
-	ws2401_dpi_power(lcd, FB_BLANK_POWERDOWN);
 	kfree(lcd);
-
+	mutex_unlock(&ddev->display_lock);
 	dev_dbg(&ddev->dev, "end %s\n", __func__);
 }
 
-static int ws2401_dpi_mcde_resume(struct mcde_display_device *ddev)
+static int s6d27a1_dpi_mcde_resume(struct mcde_display_device *ddev)
 {
 	int ret;
-	struct ws2401_dpi *lcd = dev_get_drvdata(&ddev->dev);
+	struct s6d27a1_dpi *lcd = dev_get_drvdata(&ddev->dev);
 	DPI_DISP_TRACE;
 
 	/* set_power_mode will handle call platform_enable */
@@ -1126,16 +1184,16 @@ static int ws2401_dpi_mcde_resume(struct mcde_display_device *ddev)
 		dev_warn(&ddev->dev, "%s:Failed to resume display\n"
 			, __func__);
 
-	ws2401_dpi_power(lcd, FB_BLANK_UNBLANK);
+	s6d27a1_dpi_power(lcd, FB_BLANK_UNBLANK);
 
 	return ret;
 }
 
-static int ws2401_dpi_mcde_suspend(
+static int s6d27a1_dpi_mcde_suspend(
 		struct mcde_display_device *ddev, pm_message_t state)
 {
 	int ret = 0;
-	struct ws2401_dpi *lcd = dev_get_drvdata(&ddev->dev);
+	struct s6d27a1_dpi *lcd = dev_get_drvdata(&ddev->dev);
 
 	dev_dbg(&ddev->dev, "Invoked %s\n", __func__);
 
@@ -1144,7 +1202,7 @@ static int ws2401_dpi_mcde_suspend(
 	 * when lcd panel is suspend, lcd panel becomes off
 	 * regardless of status.
 	 */
-	ret = ws2401_dpi_power(lcd, FB_BLANK_POWERDOWN);
+	ret = s6d27a1_dpi_power(lcd, FB_BLANK_POWERDOWN);
 
 	/* set_power_mode will handle call platform_disable */
 	ret = ddev->set_power_mode(ddev, MCDE_DISPLAY_PM_OFF);
@@ -1156,93 +1214,63 @@ static int ws2401_dpi_mcde_suspend(
 }
 
 #ifdef CONFIG_HAS_EARLYSUSPEND
-static void ws2401_dpi_mcde_early_suspend(
+static void s6d27a1_dpi_mcde_early_suspend(
 		struct early_suspend *earlysuspend)
 {
-	struct ws2401_dpi *lcd = container_of(earlysuspend,
-						struct ws2401_dpi,
+	struct s6d27a1_dpi *lcd = container_of(earlysuspend,
+						struct s6d27a1_dpi,
 						earlysuspend);
 	pm_message_t dummy;
 
-	#ifdef ESD_OPERATION
-	if (lcd->esd_enable) {
-
-		lcd->esd_enable = 0;
-		irq_set_irq_type(GPIO_TO_IRQ(lcd->esd_port), IRQF_TRIGGER_NONE);
-		disable_irq_nosync(GPIO_TO_IRQ(lcd->esd_port));
-
-		if (!list_empty(&(lcd->esd_work.entry))) {
-			cancel_work_sync(&(lcd->esd_work));
-			pr_info("%s cancel_work_sync", __func__);
-		}
-
-		pr_info("%s change lcd->esd_enable :%d", __func__,
-				lcd->esd_enable);
-	}
-	#endif
-
-	ws2401_dpi_mcde_suspend(lcd->mdd, dummy);
+	s6d27a1_dpi_mcde_suspend(lcd->mdd, dummy);
 
 }
 
-static void ws2401_dpi_mcde_late_resume(
+static void s6d27a1_dpi_mcde_late_resume(
 		struct early_suspend *earlysuspend)
 {
-	struct ws2401_dpi *lcd = container_of(earlysuspend,
-						struct ws2401_dpi,
+	struct s6d27a1_dpi *lcd = container_of(earlysuspend,
+						struct s6d27a1_dpi,
 						earlysuspend);
 
-	#ifdef ESD_OPERATION
-	if (lcd->lcd_connected)
-		enable_irq(GPIO_TO_IRQ(lcd->esd_port));
-	#endif
 
-	ws2401_dpi_mcde_resume(lcd->mdd);
+	s6d27a1_dpi_mcde_resume(lcd->mdd);
 
-	#ifdef ESD_OPERATION
-	if (lcd->lcd_connected) {
-		irq_set_irq_type(GPIO_TO_IRQ(lcd->esd_port), IRQF_TRIGGER_RISING);
-		lcd->esd_enable = 1;
-		pr_info("%s change lcd->esd_enable :%d", __func__,
-				lcd->esd_enable);
-	} else
-		pr_info("%s lcd_connected : %d", __func__, lcd->lcd_connected);
-	#endif
 }
 #endif
 
-static struct mcde_display_driver ws2401_dpi_mcde = {
-	.probe          = ws2401_dpi_mcde_probe,
-	.remove         = ws2401_dpi_mcde_remove,
-	.shutdown	= ws2401_dpi_mcde_shutdown,
+static struct mcde_display_driver s6d27a1_dpi_mcde = {
+	.probe          = s6d27a1_dpi_mcde_probe,
+	.remove         = s6d27a1_dpi_mcde_remove,
+	.shutdown	= s6d27a1_dpi_mcde_shutdown,
 #ifdef CONFIG_HAS_EARLYSUSPEND
 	.suspend        = NULL,
 	.resume         = NULL,
 #else
-	.suspend        = ws2401_dpi_mcde_suspend,
-	.resume         = ws2401_dpi_mcde_resume,
+	.suspend        = s6d27a1_dpi_mcde_suspend,
+	.resume         = s6d27a1_dpi_mcde_resume,
 #endif
 	.driver		= {
-		.name	= LCD_DRIVER_NAME_WS2401,
+		.name	= LCD_DRIVER_NAME_S6D27A1,
 		.owner	= THIS_MODULE,
 	},
 };
 
 
-static int __init ws2401_dpi_init(void)
+static int __init s6d27a1_dpi_init(void)
 {
-	return mcde_display_driver_register(&ws2401_dpi_mcde);;
+	return mcde_display_driver_register(&s6d27a1_dpi_mcde);;
 }
 
-static void __exit ws2401_dpi_exit(void)
+static void __exit s6d27a1_dpi_exit(void)
 {
-	mcde_display_driver_unregister(&ws2401_dpi_mcde);
+	mcde_display_driver_unregister(&s6d27a1_dpi_mcde);
 }
 
-module_init(ws2401_dpi_init);
-module_exit(ws2401_dpi_exit);
+module_init(s6d27a1_dpi_init);
+module_exit(s6d27a1_dpi_exit);
 
 MODULE_AUTHOR("Gareth Phillips <gareth.phillips@samsung.com>");
-MODULE_DESCRIPTION("WideChips WS2401 DPI Driver");
+MODULE_DESCRIPTION("Sony S6D27A1 DPI Driver");
 MODULE_LICENSE("GPL");
 

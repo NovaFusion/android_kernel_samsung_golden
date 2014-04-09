@@ -14,6 +14,7 @@
 #include "mcde_display.h"
 
 #define LCD_DRIVER_NAME_S6E63M0		"pri_lcd_s6e63m0"
+#define LCD_DRIVER_NAME_S6D27A1		"pri_lcd_s6d27a1"
 #define LCD_DRIVER_NAME_LD9040		"pri_lcd_ld9040"
 #define LCD_DRIVER_NAME_GODIN		"pri_lcd_godin"
 #define LCD_DRIVER_NAME_I9060		"pri_lcd_i9060"
@@ -51,12 +52,19 @@ struct ssg_dpi_display_platform_data {
 	int display_off_delay;  /* DISPLAY OFF cmd to ENTER SLEEP cmd (ms) */
 	int sleep_in_delay;	/* ENTER SLEEP cmd to hw power off (ms) */
 
+	/* The following is the minimum DDR OPP required when streaming video data.
+	     Specify 0 if default minimum is sufficient.
+	*/
+	int min_ddr_opp;
+
 	struct mcde_video_mode video_mode;
 
 	/* reset lcd panel device. */
 	int (*reset)(struct ssg_dpi_display_platform_data *pd);
+	void	(*bl_on_off)(bool);
 	/* on or off to lcd panel. If 'enable' is 0 then
 	lcd power off and 1, lcd power on. */
+	void (*lcd_pwr_setup)(struct device *);	
 	int (*power_on)(struct ssg_dpi_display_platform_data *pd, int enable);
 
 	int (*gpio_cfg_earlysuspend)(void);

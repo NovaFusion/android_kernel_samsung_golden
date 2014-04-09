@@ -228,7 +228,7 @@ int dsilink_debugfs_create()
 		dsi.debugfs_dsi_root_dir = debugfs_create_dir("dsi", NULL);
 
 		if (!IS_ERR_OR_NULL(dsi.debugfs_dsi_root_dir))
-			debugfs_create_file("cmds", 0666,
+			debugfs_create_file("cmds", 0664,
 					dsi.debugfs_dsi_root_dir,
 					&dsi, &debugfs_dsi_cmds_fops);
 	}

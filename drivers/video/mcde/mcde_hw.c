@@ -41,6 +41,12 @@
 #define CREATE_TRACE_POINTS
 #include "mcde_trace.h"
 
+#define MCDE_DPI_UNDERFLOW
+#ifdef MCDE_DPI_UNDERFLOW
+#include <linux/fb.h>
+#include <video/mcde_fb.h>
+#endif
+
 static int set_channel_state_atomic(struct mcde_chnl_state *chnl,
 							enum chnl_state state);
 static int set_channel_state_sync(struct mcde_chnl_state *chnl,
@@ -60,6 +66,12 @@ static int update_channel_static_registers(struct mcde_chnl_state *chnl);
 static void _mcde_chnl_update_color_conversion(struct mcde_chnl_state *chnl);
 static void chnl_update_overlay(struct mcde_chnl_state *chnl,
 						struct mcde_ovly_state *ovly);
+
+#ifdef MCDE_DPI_UNDERFLOW
+static void mcde_underflow_handler(void);
+static void mcde_underflow_function(struct work_struct *ptr);
+#endif
+
 #define OVLY_TIMEOUT 100
 #define CHNL_TIMEOUT 100
 #define FLOW_STOP_TIMEOUT 20
@@ -81,6 +93,19 @@ static void chnl_update_overlay(struct mcde_chnl_state *chnl,
 #define CLK_DPI		"lcd"
 
 #define FIFO_EMPTY_POLL_TIMEOUT 500
+
+#ifdef MCDE_DPI_UNDERFLOW
+#define MCDE_UNDERFLOW_WORKQUEUE "mcde_underflow_workqueue"
+static struct workqueue_struct *mcde_underflow_workqueue;
+static struct work_struct mcde_underflow_work;
+
+struct mcde_rectangle {
+	int x;
+	int y;
+	int w;
+	int h;
+};
+#endif
 
 u8 *mcdeio;
 u8 num_channels;
@@ -773,9 +798,6 @@ static inline void mcde_handle_vcmp(struct mcde_chnl_state *chnl)
 		wake_up_all(&chnl->vcmp_waitq);
 	}
 	chnl->even_vcmp = !chnl->even_vcmp;
-
-	if (chnl->vcmp_cnt_to_change_col_conv == atomic_read(&chnl->vcmp_cnt))
-		mcde_update_non_buffered_color_conversion(chnl);
 }
 
 #define NUM_FAST_RESTARTS 2
@@ -866,6 +888,17 @@ static irqreturn_t mcde_irq_handler(int irq, void *dev)
 		irq_status = mcde_rreg(MCDE_MISERR);
 		if (irq_status) {
 			trace_err(irq_status);
+#ifdef MCDE_DPI_UNDERFLOW
+		if (irq_status & MCDE_RISERR_FUARIS_MASK) {
+				dev_warn(&mcde_dev->dev, "FIFO A underflow interrupt detected!!\n");
+				if (MCDE_PORTTYPE_DPI == channels[MCDE_CHNL_A].port.type) {
+					mcde_wfld(MCDE_CRA0, FLOEN, false);
+					dev_warn(&mcde_dev->dev, "FIFO A underflow\n");
+					mcde_wfld(MCDE_IMSCERR, FUAIM, 0);
+					mcde_underflow_handler();
+				}
+			}
+#endif
 			dev_err(&mcde_dev->dev, "error=%.8x\n", irq_status);
 			mcde_wreg(MCDE_RISERR, irq_status);
 		}
@@ -1834,6 +1867,7 @@ void update_channel_registers(enum mcde_chnl chnl_id, struct chnl_regs *regs,
 	u8 red;
 	u8 green;
 	u8 blue;
+	u32 stripwidth = 0;
 
 	dev_vdbg(&mcde_dev->dev, "%s\n", __func__);
 
@@ -2062,38 +2096,15 @@ void update_channel_registers(enum mcde_chnl chnl_id, struct chnl_regs *regs,
 		if (port->mode == MCDE_PORTMODE_VID)
 			update_vid_frame_parameters(&channels[chnl_id],
 						video_mode, regs->bpp / 8);
-	} else if (port->type == MCDE_PORTTYPE_DPI &&
-						!port->phy.dpi.tv_mode) {
-		/* DPI LCD Mode */
-		if (chnl_id == MCDE_CHNL_A) {
-			mcde_wreg(MCDE_SYNCHCONFA,
-				MCDE_SYNCHCONFA_HWREQVEVENT_ENUM(
-							ACTIVE_VIDEO) |
-				MCDE_SYNCHCONFA_HWREQVCNT(
-							video_mode->yres - 1) |
-				MCDE_SYNCHCONFA_SWINTVEVENT_ENUM(
-							ACTIVE_VIDEO) |
-				MCDE_SYNCHCONFA_SWINTVCNT(
-							video_mode->yres - 1));
-		} else if (chnl_id == MCDE_CHNL_B) {
-			mcde_wreg(MCDE_SYNCHCONFB,
-				MCDE_SYNCHCONFB_HWREQVEVENT_ENUM(
-							ACTIVE_VIDEO) |
-				MCDE_SYNCHCONFB_HWREQVCNT(
-							video_mode->yres - 1) |
-				MCDE_SYNCHCONFB_SWINTVEVENT_ENUM(
-							ACTIVE_VIDEO) |
-				MCDE_SYNCHCONFB_SWINTVCNT(
-							video_mode->yres - 1));
-		}
 	}
 
+	stripwidth = regs->rotbufsize / (video_mode->xres * 4);
+
 	if (regs->roten) {
-		u32 stripwidth;
-		u32 stripwidth_val;
+ 		u32 stripwidth_val;
+
 
 		/* calc strip width, 32 bits used internally */
-		stripwidth = regs->rotbufsize / (video_mode->xres * 4);
 
 		if (stripwidth >= 32)
 			stripwidth_val = MCDE_ROTACONF_STRIP_WIDTH_32PIX;
@@ -2128,6 +2139,31 @@ void update_channel_registers(enum mcde_chnl chnl_id, struct chnl_regs *regs,
 		mcde_wfld(MCDE_CRB0, BLENDEN, regs->blend_en);
 		mcde_wfld(MCDE_CRB0, BLENDCTRL, regs->blend_ctrl);
 		mcde_wfld(MCDE_CRB0, ALPHABLEND, regs->alpha_blend);
+	}
+
+	if (port->type == MCDE_PORTTYPE_DPI && !port->phy.dpi.tv_mode) {
+	/* DPI LCD Mode */
+		if (chnl_id == MCDE_CHNL_A) {
+			mcde_wreg(MCDE_SYNCHCONFA,
+				MCDE_SYNCHCONFA_HWREQVEVENT_ENUM(
+					ACTIVE_VIDEO) |
+				MCDE_SYNCHCONFA_HWREQVCNT(
+					video_mode->yres - 1 - stripwidth) |
+				MCDE_SYNCHCONFA_SWINTVEVENT_ENUM(
+					ACTIVE_VIDEO) |
+				MCDE_SYNCHCONFA_SWINTVCNT(
+					video_mode->yres - 1 - stripwidth));
+		} else if (chnl_id == MCDE_CHNL_B) {
+			mcde_wreg(MCDE_SYNCHCONFB,
+				MCDE_SYNCHCONFB_HWREQVEVENT_ENUM(
+					ACTIVE_VIDEO) |
+				MCDE_SYNCHCONFB_HWREQVCNT(
+					video_mode->yres - 1 - stripwidth) |
+				MCDE_SYNCHCONFB_SWINTVEVENT_ENUM(
+					ACTIVE_VIDEO) |
+				MCDE_SYNCHCONFB_SWINTVCNT(
+					video_mode->yres - 1 - stripwidth));
+		}
 	}
 
 	dev_vdbg(&mcde_dev->dev, "Channel registers setup, chnl=%d\n", chnl_id);
@@ -2180,7 +2216,6 @@ static int enable_mcde_hw_pre(void)
 			atomic_set(&chnl->vsync_cnt, 0);
 			chnl->vsync_cnt_wait = 0;
 			chnl->vcmp_cnt_wait = 0;
-			chnl->vcmp_cnt_to_change_col_conv = 0;
 			atomic_set(&chnl->n_vsync_capture_listeners, 0);
 			chnl->is_bta_te_listening = false;
 		}
@@ -2248,7 +2283,6 @@ static int enable_mcde_hw(void)
 			atomic_set(&chnl->vsync_cnt, 0);
 			chnl->vsync_cnt_wait = 0;
 			chnl->vcmp_cnt_wait = 0;
-			chnl->vcmp_cnt_to_change_col_conv = 0;
 			atomic_set(&chnl->n_vsync_capture_listeners, 0);
 			chnl->is_bta_te_listening = false;
 		}
@@ -3126,28 +3160,9 @@ static void chnl_update_overlay(struct mcde_chnl_state *chnl,
 
 static void stop_channel_if_needed(struct mcde_chnl_state *chnl)
 {
-	bool ovly0_valid, ovly0_yuv;
-	bool ovly1_valid, ovly1_yuv;
-	static bool prev_ovly0_yuv = false, prev_ovly1_yuv = false;
+	if (chnl->state == CHNLSTATE_RUNNING && chnl->update_color_conversion)
+		stop_channel(chnl);
 
-	ovly0_valid = chnl->ovly0 != NULL && chnl->ovly0->paddr != 0 &&
-			chnl->ovly0->inuse;
-	ovly0_yuv = ovly0_valid &&
-			chnl->ovly0->pix_fmt == MCDE_OVLYPIXFMT_YCbCr422;
-
-	ovly1_valid = chnl->ovly1 != NULL && chnl->ovly1->paddr != 0 &&
-			chnl->ovly1->inuse;
-	ovly1_yuv = ovly1_valid &&
-			chnl->ovly1->pix_fmt == MCDE_OVLYPIXFMT_YCbCr422;
-
-	if (chnl->state == CHNLSTATE_RUNNING) {
-		if ((ovly0_valid && (prev_ovly0_yuv != ovly0_yuv)) ||
-				(ovly0_valid && (prev_ovly1_yuv != ovly1_yuv)))
-			stop_channel(chnl);
-	}
-
-	prev_ovly0_yuv = ovly0_yuv;
-	prev_ovly1_yuv = ovly1_yuv;
 }
 
 static int _mcde_chnl_update(struct mcde_chnl_state *chnl,
@@ -3192,15 +3207,6 @@ static int _mcde_chnl_update(struct mcde_chnl_state *chnl,
 
 	chnl_update_overlay(chnl, chnl->ovly0);
 	chnl_update_overlay(chnl, chnl->ovly1);
-
-	if ((chnl->update_color_conversion == true)  &&
-				(chnl->state == CHNLSTATE_RUNNING)) {
-		/* Delay call to mcde_update_non_buffered_color_conversion() */
-		chnl->vcmp_cnt_to_change_col_conv = curr_vcmp_cnt + 1;
-		chnl->update_color_conversion = false;
-		/* Update double buffered color conversion registers */
-		mcde_update_double_buffered_color_conversion(chnl);
-	}
 
 	if (chnl->port.update_auto_trig)
 		chnl_update_continous(chnl);
@@ -3960,6 +3966,90 @@ failed_channels_alloc:
 	return ret;
 }
 
+#ifdef MCDE_DPI_UNDERFLOW
+static void mcde_underflow_handler(void)
+{
+	if (!mcde_underflow_workqueue)
+		return;
+	queue_work(mcde_underflow_workqueue, &mcde_underflow_work);
+}
+
+static void mcde_underflow_function(struct work_struct *ptr)
+{
+	struct device *dev = &mcde_dev->dev;
+	struct mcde_chnl_state *chnl = &channels[MCDE_CHNL_A];
+	struct mcde_rectangle update_area;
+	pm_message_t dummy;
+	int ret;
+
+	/* +438879 MCDE underflow */
+	struct fb_info *fbi;
+	struct mcde_fb *mfb;
+	extern struct fb_info* get_primary_display_fb_info(void);
+
+	dev_info(dev, "%s: mcde recovery\n", __func__);
+	fbi = get_primary_display_fb_info();
+	mfb = to_mcde_fb(fbi);
+
+#ifdef CONFIG_HAS_EARLYSUSPEND
+	if (mfb->early_suspend.suspend) {
+		mfb->early_suspend.suspend(&mfb->early_suspend);
+	}
+
+	if (mfb->early_suspend.resume) {
+		mfb->early_suspend.resume(&mfb->early_suspend);
+	}
+#else
+	dev_vdbg(dev, "%s: suspend b2r2\n", __func__);
+
+	/* args are not used */
+	b2r2_suspend(NULL, dummy);
+
+	dev_vdbg(dev, "%s: suspend mcde\n", __func__);
+
+	/* suspend mcde */
+	ret = mcde_suspend(dev, dummy);
+	if (ret < 0) {
+		dev_err(dev, "mcde_suspend() failed ret=%d\n", ret);
+		printk(KERN_INFO "mcde_suspend() failed ret=%d\n", ret);
+		goto suspend_failed;
+	}
+
+	dev_vdbg(dev, "%s: resume mcde\n", __func__);
+
+	/* resume mcde */
+	ret = mcde_resume(dev);
+	if (ret == 0) {
+		dev_info(dev, "%s: mcde recovered\n", __func__);
+		printk(KERN_INFO "%s: mcde recovered\n", __func__);
+	}
+	else {
+		dev_err(dev, "mcde_resume() failed ret=%d\n", ret);
+		printk(KERN_INFO "mcde_resume() failed ret=%d\n", ret);
+	}
+
+	update_area.x = 0;
+	update_area.y = 0;
+	update_area.w = chnl->regs.ppl;
+	update_area.h = chnl->regs.lpf;
+	ret = mcde_chnl_update(chnl, &update_area, 0 /* tripple_buffer */);
+	if (ret < 0) {
+		dev_err(dev, "mcde_chnl_update() failed ret=%d\n", ret);
+		printk(KERN_INFO "mcde_chnl_update() failed ret=%d\n", ret);
+	}
+
+suspend_failed:
+	dev_vdbg(dev, "%s: resume b2r2\n", __func__);
+	printk(KERN_INFO "%s: resume b2r2\n", __func__);
+	/* args are not used, always returns 0 */
+	b2r2_resume(NULL);
+#endif
+	/* -438879 MCDE underflow */
+
+	return;
+}
+#endif
+
 u8 mcde_get_hw_alignment()
 {
 	return hw_alignment;
@@ -4003,6 +4093,15 @@ static int __devinit mcde_probe(struct platform_device *pdev)
 	dev_info(&pdev->dev, "MCDE iomap: 0x%.8X->0x%.8X\n",
 		(u32)res->start, (u32)mcdeio);
 
+#ifdef MCDE_DPI_UNDERFLOW
+	mcde_underflow_workqueue = create_singlethread_workqueue(MCDE_UNDERFLOW_WORKQUEUE);
+	if (mcde_underflow_workqueue == NULL) {
+		dev_err(&pdev->dev, "%s: Failed to setup workqueue %s\n", __func__, MCDE_UNDERFLOW_WORKQUEUE);
+		goto failed_workqueue;
+	}
+	INIT_WORK(&mcde_underflow_work, &mcde_underflow_function);
+#endif
+
 	ret = init_clocks_and_power(pdev);
 	if (ret < 0) {
 		dev_warn(&pdev->dev, "%s: init_clocks_and_power failed\n"
@@ -4033,6 +4132,13 @@ static int __devinit mcde_probe(struct platform_device *pdev)
 failed_mcde_enable:
 failed_probe_hw:
 	remove_clocks_and_power(pdev);
+#ifdef MCDE_DPI_UNDERFLOW
+	if (mcde_underflow_workqueue != NULL) {
+		destroy_workqueue(mcde_underflow_workqueue);
+		mcde_underflow_workqueue = NULL;
+	}
+failed_workqueue:
+#endif
 failed_init_clocks:
 	iounmap(mcdeio);
 failed_map_mcde_io:
@@ -4048,6 +4154,12 @@ static int __devexit mcde_remove(struct platform_device *pdev)
 	prcmu_qos_remove_requirement(PRCMU_QOS_DDR_OPP,
 		dev_name(&pdev->dev));
 	remove_clocks_and_power(pdev);
+#ifdef MCDE_DPI_UNDERFLOW
+	if (mcde_underflow_workqueue != NULL) {
+		destroy_workqueue(mcde_underflow_workqueue);
+		mcde_underflow_workqueue = NULL;
+	}
+#endif
 	return 0;
 }
 

@@ -73,6 +73,7 @@ struct gavini_lcd_driver {
 	unsigned int 			beforepower;
 	unsigned int			power;
 	unsigned int 			ldi_state;
+	struct lcd_device			*ld;
 	struct mcde_display_device 	*mdd;
 	struct ssg_dpi_display_platform_data		*pd;
 	struct backlight_device	*bd;
@@ -193,136 +194,133 @@ static const unsigned short SMD_RGB_SYNC_OPTION[] =
 };
 
 
-static const unsigned short SMD_GAMMA_SET_RED[] =
-{
+static const unsigned short SMD_GAMMA_SET_RED[] = {
 	0xC8,			COMMAND_ONLY,
-	DATA_ONLY, 			0x00,
-	DATA_ONLY,				0x42,
-	DATA_ONLY,				0x10,
-	DATA_ONLY, 			0x1D,
-	DATA_ONLY,				0x31,
-	DATA_ONLY,				0x3A,
-	DATA_ONLY, 			0x3A,
-	DATA_ONLY,				0x3D,
-	DATA_ONLY,				0x3B,
-	DATA_ONLY, 			0x42,
-	DATA_ONLY,				0x49,
-	DATA_ONLY,				0x48,
-	DATA_ONLY, 			0x48,
-	DATA_ONLY,				0x44,
-	DATA_ONLY,				0x48,
-	DATA_ONLY, 			0x59,
-	DATA_ONLY,				0x55,
-	DATA_ONLY,				0x57,
-	DATA_ONLY, 			0x14,
-	DATA_ONLY,				0x00,
-	DATA_ONLY,				0x42,
-	DATA_ONLY, 			0x10,
-	DATA_ONLY,				0x1D,
-	DATA_ONLY,				0x31,
-	DATA_ONLY, 			0x3A,
-	DATA_ONLY,				0x3A,
-	DATA_ONLY,				0x3D,
-	DATA_ONLY, 			0x3B,
-	DATA_ONLY,				0x42,
-	DATA_ONLY,				0x49,
-	DATA_ONLY, 			0x48,
-	DATA_ONLY,				0x48,
-	DATA_ONLY,				0x44,
-	DATA_ONLY, 			0x48,
-	DATA_ONLY,				0x59,
-	DATA_ONLY,				0x55,
-	DATA_ONLY,				0x57,
-	DATA_ONLY,				0x14,
-	ENDDEF,     0x00
+	DATA_ONLY,			0x00,
+	DATA_ONLY,			0x0A,
+	DATA_ONLY,			0x31,
+	DATA_ONLY,			0x3B,
+	DATA_ONLY,			0x4E,
+	DATA_ONLY,			0x58,
+	DATA_ONLY,			0x59,
+	DATA_ONLY,			0x5B,
+	DATA_ONLY,			0x58,
+	DATA_ONLY,			0x5E,
+	DATA_ONLY,			0x62,
+	DATA_ONLY,			0x60,
+	DATA_ONLY,			0x61,
+	DATA_ONLY,			0x5E,
+	DATA_ONLY,			0x62,
+	DATA_ONLY,			0x55,
+	DATA_ONLY,			0x55,
+	DATA_ONLY,			0x7F,
+	DATA_ONLY,			0x08,
+	DATA_ONLY,			0x00,
+	DATA_ONLY,			0x0A,
+	DATA_ONLY,			0x31,
+	DATA_ONLY,			0x3B,
+	DATA_ONLY,			0x4E,
+	DATA_ONLY,			0x58,
+	DATA_ONLY,			0x59,
+	DATA_ONLY,			0x5B,
+	DATA_ONLY,			0x58,
+	DATA_ONLY,			0x5E,
+	DATA_ONLY,			0x62,
+	DATA_ONLY,			0x60,
+	DATA_ONLY,			0x61,
+	DATA_ONLY,			0x5E,
+	DATA_ONLY,			0x62,
+	DATA_ONLY,			0x55,
+	DATA_ONLY,			0x55,
+	DATA_ONLY,			0x7F,
+	DATA_ONLY,			0x08,
+	ENDDEF,		0x00
 };
 
-static const unsigned short SMD_GAMMA_SET_GREEN[] =
-{
+static const unsigned short SMD_GAMMA_SET_GREEN[] = {
 	0xC9,			COMMAND_ONLY,
-	DATA_ONLY, 			0x00,
-	DATA_ONLY,				0x38,
-	DATA_ONLY,				0x14,
-	DATA_ONLY, 			0x20,
-	DATA_ONLY,				0x35,
-	DATA_ONLY,				0x3E,
-	DATA_ONLY, 			0x40,
-	DATA_ONLY,				0x44,
-	DATA_ONLY,				0x42,
-	DATA_ONLY, 			0x48,
-	DATA_ONLY,				0x4F,
-	DATA_ONLY,				0x4E,
-	DATA_ONLY, 			0x4E,
-	DATA_ONLY,				0x4A,
-	DATA_ONLY,				0x4D,
-	DATA_ONLY, 			0x68,
-	DATA_ONLY,				0x5C,
-	DATA_ONLY,				0x5C,
-	DATA_ONLY, 			0x16,
-	DATA_ONLY,				0x00,
-	DATA_ONLY,				0x38,
-	DATA_ONLY, 			0x14,
-	DATA_ONLY,				0x20,
-	DATA_ONLY,				0x35,
-	DATA_ONLY, 			0x3E,
-	DATA_ONLY,				0x40,
-	DATA_ONLY,				0x44,
-	DATA_ONLY, 			0x42,
-	DATA_ONLY,				0x48,
-	DATA_ONLY,				0x4F,
-	DATA_ONLY, 			0x4E,
-	DATA_ONLY,				0x4E,
-	DATA_ONLY,				0x4A,
-	DATA_ONLY, 			0x4D,
-	DATA_ONLY,				0x68,
-	DATA_ONLY,				0x5C,
-	DATA_ONLY,				0x5C,
-	DATA_ONLY,				0x16,
-	ENDDEF,     0x00
+	DATA_ONLY,			0x00,
+	DATA_ONLY,			0x25,
+	DATA_ONLY,			0x15,
+	DATA_ONLY,			0x28,
+	DATA_ONLY,			0x3D,
+	DATA_ONLY,			0x4A,
+	DATA_ONLY,			0x48,
+	DATA_ONLY,			0x4C,
+	DATA_ONLY,			0x4A,
+	DATA_ONLY,			0x52,
+	DATA_ONLY,			0x59,
+	DATA_ONLY,			0x59,
+	DATA_ONLY,			0x5B,
+	DATA_ONLY,			0x56,
+	DATA_ONLY,			0x60,
+	DATA_ONLY,			0x5D,
+	DATA_ONLY,			0x55,
+	DATA_ONLY,			0x7F,
+	DATA_ONLY,			0x0A,
+	DATA_ONLY,			0x00,
+	DATA_ONLY,			0x25,
+	DATA_ONLY,			0x15,
+	DATA_ONLY,			0x28,
+	DATA_ONLY,			0x3D,
+	DATA_ONLY,			0x4A,
+	DATA_ONLY,			0x48,
+	DATA_ONLY,			0x4C,
+	DATA_ONLY,			0x4A,
+	DATA_ONLY,			0x52,
+	DATA_ONLY,			0x59,
+	DATA_ONLY,			0x59,
+	DATA_ONLY,			0x5B,
+	DATA_ONLY,			0x56,
+	DATA_ONLY,			0x60,
+	DATA_ONLY,			0x5D,
+	DATA_ONLY,			0x55,
+	DATA_ONLY,			0x7F,
+	DATA_ONLY,			0x0A,
+	ENDDEF,		0x00
 };
 
-static const unsigned short SMD_GAMMA_SET_BLUE[] =
-{
+static const unsigned short SMD_GAMMA_SET_BLUE[] = {
 	0xCA,			COMMAND_ONLY,
-	DATA_ONLY, 			0x00,
-	DATA_ONLY,				0x6B,
-	DATA_ONLY,				0x0B,
-	DATA_ONLY, 			0x12,
-	DATA_ONLY,				0x22,
-	DATA_ONLY,				0x28,
-	DATA_ONLY, 			0x28,
-	DATA_ONLY,				0x2B,
-	DATA_ONLY,				0x2A,
-	DATA_ONLY, 			0x33,
-	DATA_ONLY,				0x3B,
-	DATA_ONLY,				0x3B,
-	DATA_ONLY, 			0x3D,
-	DATA_ONLY,				0x3B,
-	DATA_ONLY,				0x44,
-	DATA_ONLY, 			0x5D,
-	DATA_ONLY,				0x51,
-	DATA_ONLY,				0x51,
-	DATA_ONLY, 			0x18,
-	DATA_ONLY,				0x00,
-	DATA_ONLY,				0x6B,
-	DATA_ONLY, 			0x0B,
-	DATA_ONLY,				0x12,
-	DATA_ONLY,				0x22,
-	DATA_ONLY, 			0x28,
-	DATA_ONLY,				0x28,
-	DATA_ONLY,				0x2B,
-	DATA_ONLY, 			0x2A,
-	DATA_ONLY,				0x33,
-	DATA_ONLY,				0x3B,
-	DATA_ONLY, 			0x3B,
-	DATA_ONLY,				0x3D,
-	DATA_ONLY,				0x3B,
-	DATA_ONLY, 			0x44,
-	DATA_ONLY,				0x5D,
-	DATA_ONLY,				0x51,
-	DATA_ONLY,				0x51,
-	DATA_ONLY,				0x18,
-	ENDDEF,     0x00
+	DATA_ONLY,			0x00,
+	DATA_ONLY,			0x48,
+	DATA_ONLY,			0x10,
+	DATA_ONLY,			0x1F,
+	DATA_ONLY,			0x2F,
+	DATA_ONLY,			0x35,
+	DATA_ONLY,			0x38,
+	DATA_ONLY,			0x3D,
+	DATA_ONLY,			0x3C,
+	DATA_ONLY,			0x45,
+	DATA_ONLY,			0x4D,
+	DATA_ONLY,			0x4E,
+	DATA_ONLY,			0x52,
+	DATA_ONLY,			0x51,
+	DATA_ONLY,			0x60,
+	DATA_ONLY,			0x7F,
+	DATA_ONLY,			0x7E,
+	DATA_ONLY,			0x7F,
+	DATA_ONLY,			0x0C,
+	DATA_ONLY,			0x00,
+	DATA_ONLY,			0x48,
+	DATA_ONLY,			0x10,
+	DATA_ONLY,			0x1F,
+	DATA_ONLY,			0x2F,
+	DATA_ONLY,			0x35,
+	DATA_ONLY,			0x38,
+	DATA_ONLY,			0x3D,
+	DATA_ONLY,			0x3C,
+	DATA_ONLY,			0x45,
+	DATA_ONLY,			0x4D,
+	DATA_ONLY,			0x4E,
+	DATA_ONLY,			0x52,
+	DATA_ONLY,			0x51,
+	DATA_ONLY,			0x60,
+	DATA_ONLY,			0x7F,
+	DATA_ONLY,			0x7E,
+	DATA_ONLY,			0x7F,
+	DATA_ONLY,			0x0C,
+	ENDDEF,		0x00
 };
 
 static const unsigned short SMD_BIAS_CURRENT_CTRL[] =
@@ -694,6 +692,13 @@ static void gavini_power_on(struct gavini_lcd_driver *lcd)
 		if (pd->power_on_delay)
 			msleep(pd->power_on_delay);
 	}
+	
+	if (!pd->gpio_cfg_lateresume) {
+		dev_err(lcd->dev, "gpio_cfg_lateresume is NULL.\n");
+		goto err_exit;
+	} else {
+		pd->gpio_cfg_lateresume();
+	}
 
 	if (!pd->reset) {
 		dev_err(lcd->dev, "reset is NULL.\n");
@@ -799,6 +804,12 @@ static int gavini_power_off(struct gavini_lcd_driver *lcd)
 
 	if (pd->sleep_in_delay)
 		msleep(pd->sleep_in_delay);
+		
+	if (!pd->gpio_cfg_earlysuspend) {
+		dev_err(lcd->dev, "gpio_cfg_earlysuspend is NULL.\n");
+		return -EFAULT;
+	} else
+		pd->gpio_cfg_earlysuspend();
 
 	if (!pd->power_on) {
 		dev_err(lcd->dev, "power_on is NULL.\n");
@@ -956,6 +967,40 @@ const struct backlight_ops gavini_backlight_ops = {
 };
 
 
+static ssize_t panel_type_show(struct device *dev,
+				struct device_attribute *attr,
+				char *buf)
+{
+		return sprintf(buf, "LMS397KF04\n");
+}
+static DEVICE_ATTR(panel_type, 0444, panel_type_show, NULL);
+
+static int gavini_set_power(struct lcd_device *ld, int power)
+{
+	struct gavini_lcd_driver *lcd = lcd_get_data(ld);
+
+	if (power != FB_BLANK_UNBLANK && power != FB_BLANK_POWERDOWN
+		&&	power != FB_BLANK_NORMAL) {
+		dev_err(lcd->dev, "power value should be 0, 1 or 4.\n");
+		return -EINVAL;
+	}
+
+	return gavini_power(lcd, power);
+}
+
+static int gavini_get_power(struct lcd_device *ld)
+{
+	struct gavini_lcd_driver *lcd = lcd_get_data(ld);
+
+	return lcd->power;
+}
+
+static struct lcd_ops gavini_lcd_ops = {
+	.set_power = gavini_set_power,
+	.get_power = gavini_get_power,
+};
+
+
 static int gavini_mcde_panel_probe(struct mcde_display_device *ddev)
 {
 	int ret = 0;
@@ -1000,6 +1045,18 @@ static int gavini_mcde_panel_probe(struct mcde_display_device *ddev)
         goto out;
 	}
 #ifdef CONFIG_MACH_GAVINI
+#ifdef CONFIG_LCD_CLASS_DEVICE
+	lcd->ld = lcd_device_register("panel", &ddev->dev,
+					lcd, &gavini_lcd_ops);
+	if (IS_ERR(lcd->ld)) {
+		ret = PTR_ERR(lcd->ld);
+	} else {
+		ret = device_create_file(&(lcd->ld->dev), &dev_attr_panel_type);
+		if (ret < 0)
+			dev_err(&(lcd->ld->dev),
+			"failed to add panel_type sysfs entries\n");
+	}
+#endif
 	if (system_rev < GAVINI_R0_0_C) {
 		bd = backlight_device_register("pwm-backlight",
 						&ddev->dev,
@@ -1166,4 +1223,5 @@ module_exit(gavini_exit);
 MODULE_AUTHOR("Gareth Phillips <gareth.phillips@samsung.com>");
 MODULE_DESCRIPTION("gavini LCD Driver");
 MODULE_LICENSE("GPL");
+
 

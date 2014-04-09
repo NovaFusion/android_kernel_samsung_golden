@@ -1,5 +1,5 @@
 /*
- * display-sec-nt35512_dis.c - Display driver for BOE WVGA panel (NT35512)
+ * display-nt35512_dsi.c - Display driver for BOE WVGA panel (NT35512)
  *
  * Copyright (C) 2012 Samsung
  * Author: Robert Teather <robert.teather@samsung.com>
@@ -70,45 +70,45 @@ static const u8 BOE_WVGA_DCS_CMD_SEQ_POWER_SETTING[] = {
 /*	Length	Command 			Parameters */
 	/* Enable CMD2 Page1 */
 	6,	0xF0,				0x55, 0xAA, 0x52, 0x08, 0x01,
-	4,	0xB0, /* SETAVDD */		0x09, 0x09, 0x09,
-	4,	0xB6, /* BT1CTR */		0x34, 0x34, 0x34,
-	4,	0xB1, /* SETAVEE */		0x09, 0x09, 0x09,
-	4,	0xB7, /* BT2CTR */		0x24, 0x24, 0x24,
-	4,	0xB3, /* SETVGH */		0x05, 0x05, 0x05,
-	4,	0xB9, /* BT4CTR */		0x24, 0x24, 0x24,	/* VGH boosting times/freq */
-	2,	0xBF, /* VGHCTR */		0x01,			/* VGH output ctrl */
-	4,	0xB5, /* SETVGL_REG */		0x0B, 0x0B, 0x0B,
-	4,	0xBA, /* BT5CTR */		0x24, 0x24, 0x24,
+	4,	0xB0,				0x09, 0x09, 0x09,
+	4,	0xB6,				0x34, 0x34, 0x34,
+	4,	0xB1,				0x09, 0x09, 0x09,
+	4,	0xB7,				0x24, 0x24, 0x24,
+	4,	0xB3,				0x05, 0x05, 0x05,
+	4,	0xB9,				0x24, 0x24, 0x24,
+	2,	0xBF,				0x01,
+	4,	0xB5,				0x0B, 0x0B, 0x0B,
+	4,	0xBA,				0x24, 0x24, 0x24,
 	2,	0xC2,				0x01,
-	4,	0xBC, /* SETVPG */		0x00, 0x90, 0x00,	/* VGMP/VGSN */
-	4,	0xBD, /* SETVGN */		0x00, 0x90, 0x00,	/* VGMN/VGSN */
+	4,	0xBC,				0x00, 0x90, 0x00,
+	4,	0xBD,				0x00, 0x90, 0x00,
+	DCS_CMD_SEQ_DELAY_MS,			150,
 	DCS_CMD_SEQ_END
 };
 
-#define BOE_WVGA_GAMMA_CTR1			0x00, 0x01, 0x00, 0x1D, 0x00, \
-						0x48, 0x00, 0x64, 0x00, 0x7E, \
-						0x00, 0xB1, 0x00, 0xD3, 0x01, \
-						0x07, 0x01, 0x35, 0x01, 0x7B, \
-						0x01, 0xB3, 0x02, 0x03, 0x02, \
-						0x48, 0x02, 0x49, 0x02, 0x88, \
-						0x02, 0xC7, 0x02, 0xF3, 0x03, \
-						0x21, 0x03, 0x46, 0x03, 0x74, \
-						0x03, 0x8F, 0x03, 0xA3, 0x03, \
-						0xAC, 0x03, 0xB7, 0x03, 0xBF, \
-						0x03, 0xFE
+#define BOE_WVGA_GAMMA_CTR1			0x00, 0x37, 0x00, 0x51, 0x00, \
+						0x71, 0x00, 0x96, 0x00, 0xAA, \
+						0x00, 0xD3, 0x00, 0xF0, 0x01, \
+						0x1D, 0x01, 0x45, 0x01, 0x84, \
+						0x01, 0xB5, 0x02, 0x02, 0x02, \
+						0x46, 0x02, 0x48, 0x02, 0x80, \
+						0x02, 0xC0, 0x02, 0xE8, 0x03, \
+						0x14, 0x03, 0x32, 0x03, 0x5D, \
+						0x03, 0x73, 0x03, 0x91, 0x03, \
+						0xA0, 0x03, 0xBF, 0x03, 0xCF, \
+						0x03, 0xEF
 
-#define BOE_WVGA_GAMMA_CTR2			0x00, 0x01, 0x00, 0x1D, 0x00, \
-						0x4C, 0x00, 0x6E, 0x00, 0x8A, \
-						0x00, 0xB7, 0x00, 0xD9, 0x01, \
-						0x10, 0x01, 0x3C, 0x01, 0x7F, \
-						0x01, 0xB3, 0x02, 0x03, 0x02, \
-						0x48, 0x02, 0x49, 0x02, 0x88, \
-						0x02, 0xC7, 0x02, 0xF3, 0x03, \
-						0x21, 0x03, 0x46, 0x03, 0x74, \
-						0x03, 0x8F, 0x03, 0xA3, 0x03, \
-						0xAC, 0x03, 0xB7, 0x03, 0xBF, \
-						0x03, 0xFE
-
+#define BOE_WVGA_GAMMA_CTR2			0x00, 0x37, 0x00, 0x51, 0x00, \
+						0x71, 0x00, 0x96, 0x00, 0xAA, \
+						0x00, 0xD3, 0x00, 0xF0, 0x01, \
+						0x1D, 0x01, 0x45, 0x01, 0x84, \
+						0x01, 0xB5, 0x02, 0x02, 0x02, \
+						0x46, 0x02, 0x48, 0x02, 0x80, \
+						0x02, 0xC0, 0x02, 0xE8, 0x03, \
+						0x14, 0x03, 0x32, 0x03, 0x5D, \
+						0x03, 0x73, 0x03, 0x91, 0x03, \
+						0xA0, 0x03, 0xBF, 0x03, 0xCF, \
+						0x03, 0xEF
 
 static const u8 BOE_WVGA_DCS_CMD_SEQ_GAMMA_SETTING[] = {
 /*	Length	Command 			Parameters */
@@ -131,15 +131,15 @@ static const u8 BOE_WVGA_DCS_CMD_SEQ_INIT[] = {
 /*	Length	Command 			Parameters */
 	6,	0xF0, /* Page 0 */		0x55, 0xAA, 0x52, 0x08, 0x00,
 	2,	0xB6, /* SDHDTCTR */		0x06,		/* Source data hold time */
-	3,	0xB7, /* GSEQCTR */		0x00, 0x00,	/* Gate EQ */
-	5,	0xB8, /* SDEQCTR */		0x01, 0x05, 0x05, 0x05,	/* Source EQ */
-	2,	0xBA, /* BT56CTR */		0x01,
+	3,	0xB7, /* GSEQCTR */ 	0x00, 0x00, /* Gate EQ */
+	5,	0xB8, /* SDEQCTR */ 	0x01, 0x05, 0x05, 0x05, /* Source EQ */
+	2,	0xBA, /* BT56CTR */ 	0x01,
 	4,	0xBC, /* INVCTR */		0x00, 0x00, 0x0,	/* Inversion Ctrl */
 	6,	0xBD, /* DPFRCTR1 */		0x01, 0x84, 0x07, 0x32, 0x00, /* Disp Timing */
 	6,	0xBE, /* SETVCMOFF */		0x01, 0x84, 0x07, 0x31, 0x00,
 	6,	0xBF, /* VGHCTR */		0x01, 0x84, 0x07, 0x31, 0x00,
 	4,	0xCC, /* DPTMCTR12 */		0x03, 0x00, 0x00,	/* Disp Timing 12 */
-	3,	0xB1, /* DOPCTR */		0xF8, 0x06,		/* rotation */
+	3,	0xB1, /* DOPCTR */		0xF8, 0x06, 	/* rotation */
 	DCS_CMD_SEQ_END
 };
 
@@ -169,7 +169,7 @@ static const u8 BOE_WVGA_DCS_CMD_SEQ_ROTATE_180[] = {
 	DCS_CMD_SEQ_END
 };
 
-struct kyle_lcd_data {
+struct skomer_lcd_data {
 	struct device			*dev;
 	struct mutex			lock;
 	struct mcde_display_device	*ddev;
@@ -193,11 +193,10 @@ struct kyle_lcd_data {
 	struct timer_list		esd_timer;
 #endif
 #ifdef CONFIG_HAS_EARLYSUSPEND
-	struct early_suspend		earlysuspend;
+	struct early_suspend	earlysuspend;
 #endif
 
 };
-
 
 #ifdef CONFIG_HAS_EARLYSUSPEND
 static void nt35512_dsi_early_suspend(
@@ -206,7 +205,7 @@ static void nt35512_dsi_late_resume(
 			struct early_suspend *earlysuspend);
 #endif
 
-static void nt35512_display_init(struct kyle_lcd_data *lcd);
+static void nt35512_display_init(struct skomer_lcd_data *lcd);
 
 #define MAX_DCS_CMD_ALLOWED	(DSILINK_MAX_DSI_DIRECT_CMD_WRITE - 1)
 static int dsi_dcs_write_command(struct mcde_display_device *ddev, u8 cmd, u8* p_data, int len)
@@ -266,7 +265,7 @@ static int dsi_dcs_write_sequence(struct mcde_display_device *ddev,
 static int dsi_display_update(struct mcde_display_device *ddev,
 							bool tripple_buffer)
 {
-	struct kyle_lcd_data *lcd = dev_get_drvdata(&ddev->dev);
+	struct skomer_lcd_data *lcd = dev_get_drvdata(&ddev->dev);
 	int ret = 0;
 
 	if (ddev->power_mode != MCDE_DISPLAY_PM_ON && ddev->set_power_mode) {
@@ -298,7 +297,7 @@ static int dsi_display_update(struct mcde_display_device *ddev,
 	return 0;
 }
 
-static int dsi_read_panel_id(struct kyle_lcd_data *lcd)
+static int dsi_read_panel_id(struct skomer_lcd_data *lcd)
 {
 	int readret = 0;
 	int len = 1;
@@ -326,7 +325,7 @@ static int dsi_read_panel_id(struct kyle_lcd_data *lcd)
 #ifdef ESD_TEST
 static void est_test_timer_func(unsigned long data)
 {
-	struct kyle_lcd_data *lcd = (struct kyle_lcd_data *)data;
+	struct skomer_lcd_data *lcd = (struct skomer_lcd_data *)data;
 
 	dev_info(lcd->dev, "%s invoked\n", __func__);
 	if (list_empty(&lcd->esd_work.entry)) {
@@ -338,7 +337,7 @@ static void est_test_timer_func(unsigned long data)
 #endif
 
 #ifdef ESD_USING_POLLING
-static int nt35512_read_checksum(struct kyle_lcd_data *lcd, u8 *checksum)
+static int nt35512_read_checksum(struct skomer_lcd_data *lcd, u8 *checksum)
 {
 	int ret;
 	int len = 1;
@@ -352,8 +351,8 @@ static int nt35512_read_checksum(struct kyle_lcd_data *lcd, u8 *checksum)
 }
 static void nt35512_esd_checksum_func(struct work_struct *work)
 {
-	struct kyle_lcd_data *lcd = container_of(work,
-					struct kyle_lcd_data, esd_polling_work);
+	struct skomer_lcd_data *lcd = container_of(work,
+					struct skomer_lcd_data, esd_polling_work);
 	u8 curr_checksum;
 
 	if (atomic_read(&lcd->esd_enable)) {
@@ -370,7 +369,7 @@ static void nt35512_esd_checksum_func(struct work_struct *work)
 			} else
 				dev_vdbg(lcd->dev, "Checksum OK (0x%X)\n",
 					curr_checksum);
-
+				
 		}
 		mod_timer(&lcd->esd_timer,
 			jiffies + msecs_to_jiffies(ESD_POLLING_TIME));
@@ -378,7 +377,7 @@ static void nt35512_esd_checksum_func(struct work_struct *work)
 }
 static void nt35512_esd_polling_func(unsigned long data)
 {
-	struct kyle_lcd_data *lcd = (struct kyle_lcd_data *)data;
+	struct skomer_lcd_data *lcd = (struct skomer_lcd_data *)data;
 
 	dev_vdbg(lcd->dev, "Polling ESD checksum\n");
 	if (atomic_read(&lcd->esd_enable)) {
@@ -395,8 +394,8 @@ static void nt35512_esd_polling_func(unsigned long data)
 #endif
 static void nt35512_esd_recovery_func(struct work_struct *work)
 {
-	struct kyle_lcd_data *lcd = container_of(work,
-					struct kyle_lcd_data, esd_work);
+	struct skomer_lcd_data *lcd = container_of(work,
+					struct skomer_lcd_data, esd_work);
 
 	if (!atomic_read(&lcd->esd_processing)) {
 		atomic_set(&lcd->esd_processing, 1);
@@ -410,7 +409,7 @@ static void nt35512_esd_recovery_func(struct work_struct *work)
 
 static irqreturn_t esd_interrupt_handler(int irq, void *data)
 {
-	struct kyle_lcd_data *lcd = data;
+	struct skomer_lcd_data *lcd = data;
 
 	dev_dbg(lcd->dev,"lcd->esd_enable :%d\n", atomic_read(&lcd->esd_enable));
 
@@ -427,7 +426,7 @@ static irqreturn_t esd_interrupt_handler(int irq, void *data)
 #ifdef CONFIG_LCD_CLASS_DEVICE
 static int nt35512_set_power_mode(struct mcde_display_device *ddev,
 	enum mcde_display_power_mode power_mode);
-static int nt35512_power(struct kyle_lcd_data *lcd, int power)
+static int nt35512_power(struct skomer_lcd_data *lcd, int power)
 {
 	int ret = 0;
 
@@ -457,7 +456,7 @@ static int nt35512_power(struct kyle_lcd_data *lcd, int power)
 
 static int nt35512_set_power(struct lcd_device *ld, int power)
 {
-	struct kyle_lcd_data *lcd = lcd_get_data(ld);
+	struct skomer_lcd_data *lcd = lcd_get_data(ld);
 
 	dev_dbg(lcd->dev, "%s: power=%d\n", __func__, power);
 
@@ -472,7 +471,7 @@ static int nt35512_set_power(struct lcd_device *ld, int power)
 
 static int nt35512_get_power(struct lcd_device *ld)
 {
-	struct kyle_lcd_data *lcd = lcd_get_data(ld);
+	struct skomer_lcd_data *lcd = lcd_get_data(ld);
 	int power;
 
 	switch (lcd->ddev->power_mode) {
@@ -492,7 +491,7 @@ static int nt35512_get_power(struct lcd_device *ld)
 	return power;
 }
 
-static struct lcd_ops kyle_lcd_data_ops = {
+static struct lcd_ops skomer_lcd_data_ops = {
 	.set_power = nt35512_set_power,
 	.get_power = nt35512_get_power,
 };
@@ -505,7 +504,7 @@ static int nt35512_set_rotation(struct mcde_display_device *ddev,
 	static int notFirstTime;
 	int ret = 0;
 	enum mcde_display_rotation final;
-	struct kyle_lcd_data *lcd = dev_get_drvdata(&ddev->dev);
+	struct skomer_lcd_data *lcd = dev_get_drvdata(&ddev->dev);
 	enum mcde_hw_rotation final_hw_rot;
 
 	final = (360 + rotation - ddev->orientation) % 360;
@@ -583,7 +582,7 @@ static int nt35512_apply_config(struct mcde_display_device *ddev)
 	return 0;
 }
 
-static void nt35512_display_init(struct kyle_lcd_data *lcd)
+static void nt35512_display_init(struct skomer_lcd_data *lcd)
 {
 	if (lcd->pd->bl_on_off)
 		lcd->pd->bl_on_off(false);
@@ -614,7 +613,7 @@ static void nt35512_display_init(struct kyle_lcd_data *lcd)
 static int nt35512_set_power_mode(struct mcde_display_device *ddev,
 	enum mcde_display_power_mode power_mode)
 {
-	struct kyle_lcd_data *lcd = dev_get_drvdata(&ddev->dev);
+	struct skomer_lcd_data *lcd = dev_get_drvdata(&ddev->dev);
 	int ret = 0;
 
 	mutex_lock(&lcd->lock);
@@ -745,7 +744,7 @@ static int nt35512_set_power_mode(struct mcde_display_device *ddev,
 	} else {
 		irq_set_irq_type(lcd->esd_irq, IRQF_TRIGGER_NONE);
 		disable_irq_nosync(lcd->esd_irq);
-
+		
 		if (!list_empty(&(lcd->esd_work.entry))) {
 			cancel_work_sync(&(lcd->esd_work));
 			dev_dbg(lcd->dev," cancel_work_sync\n");
@@ -791,8 +790,8 @@ static int nt35512_dsi_try_video_mode(struct mcde_display_device *ddev,
 		video_mode->hsw = HSW;
 		video_mode->interlaced = false;
 		/* +445681 display padding */
-		video_mode->xres_padding = ddev->x_res_padding;
-		video_mode->yres_padding = ddev->y_res_padding;
+		video_mode->xres_padding = 0;
+		video_mode->yres_padding = 0;
 		/* -445681 display padding */
 
 		if (pixclock == 0) {
@@ -845,10 +844,6 @@ static int nt35512_dsi_set_video_mode(struct mcde_display_device *ddev,
 		channel_video_mode.xres = ddev->native_x_res;
 		channel_video_mode.yres = ddev->native_y_res;
 	}
-	/* +445681 display padding */
-	channel_video_mode.xres_padding = ddev->x_res_padding;
-	channel_video_mode.yres_padding = ddev->y_res_padding;	
-	/* -445681 display padding */	
 	ret = mcde_chnl_set_video_mode(ddev->chnl_state, &channel_video_mode);
 	if (ret < 0) {
 		dev_warn(&ddev->dev, "%s:Failed to set video mode\n", __func__);
@@ -883,7 +878,7 @@ static int __devinit nt35512_probe(struct mcde_display_device *ddev)
 {
 	int ret = 0;
 	struct sec_dsi_platform_data *pdata = ddev->dev.platform_data;
-	struct kyle_lcd_data *lcd = NULL;
+	struct skomer_lcd_data *lcd = NULL;
 
 	dev_dbg(&ddev->dev, "%s function entered\n", __func__);
 
@@ -909,6 +904,9 @@ static int __devinit nt35512_probe(struct mcde_display_device *ddev)
 	if (pdata->lcd_pwr_setup)
 		pdata->lcd_pwr_setup(&ddev->dev);
 
+	if (pdata->lcd_pwr_onoff)
+		pdata->lcd_pwr_onoff(true);
+
 
 	ddev->set_power_mode = nt35512_set_power_mode;
 	ddev->set_rotation = nt35512_set_rotation;
@@ -920,7 +918,7 @@ static int __devinit nt35512_probe(struct mcde_display_device *ddev)
 	ddev->native_x_res = VMODE_XRES;
 	ddev->native_y_res = VMODE_YRES;
 
-	lcd = kzalloc(sizeof(struct kyle_lcd_data), GFP_KERNEL);
+	lcd = kzalloc(sizeof(struct skomer_lcd_data), GFP_KERNEL);
 	if (!lcd)
 		return -ENOMEM;
 
@@ -935,7 +933,7 @@ static int __devinit nt35512_probe(struct mcde_display_device *ddev)
 
 #ifdef CONFIG_LCD_CLASS_DEVICE
 	lcd->ld = lcd_device_register("panel", &ddev->dev,
-					lcd, &kyle_lcd_data_ops);
+					lcd, &skomer_lcd_data_ops);
 	if (IS_ERR(lcd->ld)) {
 		ret = PTR_ERR(lcd->ld);
 
@@ -961,9 +959,9 @@ static int __devinit nt35512_probe(struct mcde_display_device *ddev)
 		dev_info(lcd->dev, "esd_workqueue create fail\n");
 		return 0;
 	}
-
+	
 	INIT_WORK(&(lcd->esd_work), nt35512_esd_recovery_func);
-
+	
 	gpio_request(pdata->lcd_detect, "LCD DETECT");
 	lcd->esd_irq = GPIO_TO_IRQ(lcd->pd->lcd_detect);
 	if (request_threaded_irq(lcd->esd_irq, NULL,
@@ -1005,7 +1003,7 @@ out:
 
 static int __devexit nt35512_remove(struct mcde_display_device *ddev)
 {
-	struct kyle_lcd_data *lcd = dev_get_drvdata(&ddev->dev);
+	struct skomer_lcd_data *lcd = dev_get_drvdata(&ddev->dev);
 	struct sec_dsi_platform_data *pdata = lcd->pd;
 
 	dev_dbg(&ddev->dev, "%s function entered\n", __func__);
@@ -1037,7 +1035,7 @@ static int nt35512_resume(struct mcde_display_device *ddev)
 	if (ret < 0)
 		dev_warn(&ddev->dev, "%s:Failed to resume display\n"
 			, __func__);
-#if 0
+#if 0	
 	ddev->set_synchronized_update(ddev,
 					ddev->get_synchronized_update(ddev));
 #endif
@@ -1065,8 +1063,8 @@ static void nt35512_dsi_early_suspend(
 		struct early_suspend *earlysuspend)
 {
     int ret;
-    struct kyle_lcd_data *lcd = container_of(earlysuspend,
-						struct kyle_lcd_data,
+    struct skomer_lcd_data *lcd = container_of(earlysuspend,
+						struct skomer_lcd_data,
 						earlysuspend);
     pm_message_t dummy;
 
@@ -1077,8 +1075,8 @@ static void nt35512_dsi_early_suspend(
 static void nt35512_dsi_late_resume(
 		struct early_suspend *earlysuspend)
 {
-    struct kyle_lcd_data *lcd = container_of(earlysuspend,
-						struct kyle_lcd_data,
+    struct skomer_lcd_data *lcd = container_of(earlysuspend,
+						struct skomer_lcd_data,
 						earlysuspend);
 
     dev_dbg(&lcd->ddev->dev, "%s function entered\n", __func__);
@@ -1089,7 +1087,7 @@ static void nt35512_dsi_late_resume(
 /* Power down all displays on reboot, poweroff or halt. */
 static void nt35512_dsi_shutdown(struct mcde_display_device *ddev)
 {
-	struct kyle_lcd_data *lcd = dev_get_drvdata(&ddev->dev);
+	struct skomer_lcd_data *lcd = dev_get_drvdata(&ddev->dev);
 
 	dev_info(&ddev->dev, "%s\n", __func__);
 	mutex_lock(&ddev->display_lock);
@@ -1097,10 +1095,10 @@ static void nt35512_dsi_shutdown(struct mcde_display_device *ddev)
 
 #ifdef CONFIG_HAS_EARLYSUSPEND
 	unregister_early_suspend(&lcd->earlysuspend);
-#endif
+#endif	
 	mutex_unlock(&ddev->display_lock);
 	dev_info(&ddev->dev, "end %s\n", __func__);
-
+	
 };
 
 static struct mcde_display_driver nt35512_driver = {

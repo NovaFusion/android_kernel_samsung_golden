@@ -16,8 +16,10 @@
 struct  sec_dsi_platform_data {
 	/* Platform info */
 	int	reset_gpio;
+	int	lcd_detect;
 	int	bl_en_gpio;
 	bool	bl_ctrl;
+	void	(*bl_on_off)(bool);
 	void	(*lcd_pwr_setup)(struct device *);
 	void	(*lcd_pwr_onoff)(bool);
 

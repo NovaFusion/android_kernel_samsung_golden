@@ -1717,7 +1717,7 @@ static void update_ovly_fps(struct channel_info *ci, struct overlay_info *oi)
 
 static void create_mcde_files(struct dentry *dentry)
 {
-	debugfs_create_file("get_dump", S_IWUGO, dentry,
+	debugfs_create_file("get_dump", S_IWUSR | S_IWGRP, dentry,
 			/* context */ &mcde, &debugfs_mcde_dump_fops);
 }
 
@@ -1740,9 +1740,9 @@ static void create_fps_files(struct dentry *dentry, struct fps_info *fps)
 	debugfs_create_u32("frame_counter", S_IRUGO, dentry,
 							&fps->frame_counter);
 	debugfs_create_u32("frames_per_ksecs", S_IRUGO, dentry, &fps->fpks);
-	debugfs_create_u32("interval_ms", S_IRUGO|S_IWUGO, dentry,
+	debugfs_create_u32("interval_ms", S_IRUGO|S_IWUSR|S_IWGRP, dentry,
 							&fps->interval_ms);
-	debugfs_create_u32("dmesg", S_IRUGO|S_IWUGO, dentry,
+	debugfs_create_u32("dmesg", S_IRUGO|S_IWUSR|S_IWGRP, dentry,
 							&fps->enable_dmesg);
 }
 
@@ -1753,11 +1753,11 @@ static void create_channel_files(
 	debugfs_create_file("state_snapshot", S_IRUGO, dentry,
 			/* context */&ci->channel_snapshot,
 			&debugfs_mcde_channel_snapshot_fops);
-	debugfs_create_file("get_dump", S_IWUGO, dentry,
+	debugfs_create_file("get_dump", S_IWUSR|S_IWGRP, dentry,
 			/* context */ci, &debugfs_mcde_channel_dump_fops);
-	debugfs_create_u32("vsync_mode", S_IRUGO|S_IWUGO, dentry,
+	debugfs_create_u32("vsync_mode", S_IRUGO|S_IWUSR|S_IWGRP, dentry,
 							&ci->sync_mode);
-	debugfs_create_u32("trig_mode", S_IRUGO|S_IWUGO, dentry,
+	debugfs_create_u32("trig_mode", S_IRUGO|S_IWUSR|S_IWGRP, dentry,
 							&ci->trig_mode);
 }
 
@@ -1779,13 +1779,13 @@ static int create_overlay_files(
 	debugfs_create_file("state_snapshot", S_IRUGO, dentry,
 			/* context */&oi->ovly_snapshot,
 			&debugfs_mcde_overlay_snapshot_fops);
-	debugfs_create_file("get_dump", S_IWUGO, dentry,
+	debugfs_create_file("get_dump", S_IWUSR|S_IWGRP, dentry,
 			/* context */oi, &debugfs_mcde_overlay_dump_fops);
 	debugfs_create_file("frame_stats", S_IRUGO, dentry,
 			/* context */oi, &debugfs_mcde_frame_stats_fops);
 	debugfs_create_blob("frame_snapshot", S_IRUGO, dentry,
 			oi->frame.frame_blob);
-	debugfs_create_file("format_filter", S_IWUGO | S_IRUGO, dentry,
+	debugfs_create_file("format_filter", S_IWUSR | S_IWGRP | S_IRUGO, dentry,
 			/* context */oi, &debugfs_mcde_format_filter_fops);
 	debugfs_create_file("available_format_filters", S_IRUGO, dentry,
 			/* context */oi,

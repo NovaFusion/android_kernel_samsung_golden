@@ -21,6 +21,7 @@
 int mcde_dss_open_channel(struct mcde_display_device *ddev);
 void mcde_dss_close_channel(struct mcde_display_device *ddev);
 int mcde_dss_enable_display(struct mcde_display_device *ddev);
+int mcde_dss_restart_display(struct mcde_display_device *ddev);
 void mcde_dss_disable_display(struct mcde_display_device *ddev);
 int mcde_dss_apply_channel(struct mcde_display_device *ddev);
 struct mcde_overlay *mcde_dss_create_overlay(struct mcde_display_device *ddev,

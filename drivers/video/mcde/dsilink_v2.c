@@ -25,6 +25,7 @@
 /*
  * Wait for CSM_RUNNING, all data sent for display
  */
+static bool Ispba_status = false;
 static void wait_while_running(u8 *io, struct device *dev)
 {
 	u8 counter = DSI_READ_TIMEOUT_MS;
@@ -222,6 +223,10 @@ static int read(u8 *io, struct device *dev, u8 cmd, u32 *data, int *len)
 	bool ack_with_err = false;
 	u8 nbr_of_retries = DSI_READ_NBR_OF_RETRIES;
 
+	if (Ispba_status == true) {
+		dev_info(dev,"mipi read is pba test! \n");
+		return ret;
+	}
 	dsi_wfld(io, DSI_MCTL_MAIN_DATA_CTL, BTA_EN, true);
 	dsi_wfld(io, DSI_MCTL_MAIN_DATA_CTL, READ_EN, true);
 	settings = DSI_DIRECT_CMD_MAIN_SETTINGS_CMD_NAT_ENUM(READ) |
@@ -236,6 +241,7 @@ static int read(u8 *io, struct device *dev, u8 cmd, u32 *data, int *len)
 
 	do {
 		u8 wait  = DSI_READ_TIMEOUT_MS;
+		u32 inc_time_us = DSI_READ_DELAY_US;
 		dsi_wreg(io, DSI_DIRECT_CMD_STS_CLR, ~0);
 		dsi_wreg(io, DSI_DIRECT_CMD_RD_STS_CLR, ~0);
 		dsi_wreg(io, DSI_DIRECT_CMD_SEND, true);
@@ -244,12 +250,12 @@ static int read(u8 *io, struct device *dev, u8 cmd, u32 *data, int *len)
 					READ_COMPLETED_WITH_ERR)) &&
 				!(ok = dsi_rfld(io, DSI_DIRECT_CMD_STS,
 							READ_COMPLETED)))
-			udelay(DSI_READ_DELAY_US);
+			usleep_range(DSI_READ_DELAY_US, inc_time_us+=DSI_READ_TIMEOUT_MS);
 
 		ack_with_err = dsi_rfld(io, DSI_DIRECT_CMD_STS,
 						ACKNOWLEDGE_WITH_ERR_RECEIVED);
 		if (ack_with_err)
-			dev_warn(dev,
+			dev_dbg(dev,
 					"DCS Acknowledge Error Report %.4X\n",
 				dsi_rfld(io, DSI_DIRECT_CMD_STS, ACK_VAL));
 	} while (--nbr_of_retries && ack_with_err);
@@ -268,12 +274,13 @@ static int read(u8 *io, struct device *dev, u8 cmd, u32 *data, int *len)
 		}
 	} else {
 		u8 dat1_status;
-		u32 sts;
+		u32 sts, vid_sts;
 
 		sts = dsi_rreg(io, DSI_DIRECT_CMD_STS);
+		vid_sts = dsi_rreg(io, DSI_VID_MODE_STS);
 		dat1_status = dsi_rfld(io, DSI_MCTL_LANE_STS, DATLANE1_STATE);
-		dev_err(dev, "DCS read failed, err=%d, D0 state %d sts %X\n",
-						error, dat1_status, sts);
+		dev_err(dev, "DCS read failed, err=%d, D0 state %d sts %X vid_sts %X\n",
+						error, dat1_status, sts, vid_sts);
 		dsi_wreg(io, DSI_DIRECT_CMD_RD_INIT, true);
 		/* If dat1 is still in read to a force stop */
 		if (dat1_status == DSILINK_LANE_STATE_READ ||
@@ -302,6 +309,9 @@ static int enable(u8 *io, struct device *dev, const struct dsilink_port *port,
 				struct dsilink_dsi_vid_registers *vid_regs)
 {
 	int i = 0;
+
+	if (port->phy.check_pba)
+		Ispba_status = true;
 
 	dsi_wfld(io, DSI_MCTL_MAIN_DATA_CTL, LINK_EN, true);
 	dsi_wfld(io, DSI_MCTL_MAIN_DATA_CTL, BTA_EN, true);
@@ -385,7 +395,11 @@ static int enable(u8 *io, struct device *dev, const struct dsilink_port *port,
 		 * behavior during blanking time
 		 * 00: NULL packet 1x:LP 01:blanking-packet
 		 */
+#if defined(CONFIG_MACH_SEC_KYLE) || defined(CONFIG_MACH_SEC_SKOMER)
+		dsi_wfld(io, DSI_VID_MAIN_CTL, REG_BLKLINE_MODE, 2);
+#else
 		dsi_wfld(io, DSI_VID_MAIN_CTL, REG_BLKLINE_MODE, 1);
+#endif
 
 		/*
 		 * behavior during eol
