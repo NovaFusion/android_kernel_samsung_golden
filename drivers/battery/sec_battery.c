@@ -1680,6 +1680,9 @@ ssize_t sec_bat_show_attrs(struct device *dev,
 		break;
 	case BATT_VOL_ADC_AVER:
 		break;
+	case BATT_TEMP:
+		i += scnprintf(buf + i, PAGE_SIZE - i, "%d\n",
+			battery->temperature);
 	case BATT_TEMP_ADC:
 		i += scnprintf(buf + i, PAGE_SIZE - i, "%d\n",
 			battery->temp_adc);
