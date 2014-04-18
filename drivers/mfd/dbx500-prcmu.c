@@ -753,11 +753,12 @@ static struct platform_driver dbx500_prcmu_driver = {
 		.owner = THIS_MODULE,
 		.name = "dbx500-prcmu",
 	},
+	.probe = dbx500_prcmu_probe,
 };
 
 static int __init dbx500_prcmu_init(void)
 {
-	return platform_driver_probe(&dbx500_prcmu_driver, dbx500_prcmu_probe);
+	return platform_driver_register(&dbx500_prcmu_driver);
 }
 
 MODULE_AUTHOR("Michel JAOUEN <michel.jaouen@stericsson.com>");
