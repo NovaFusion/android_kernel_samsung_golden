@@ -31,9 +31,6 @@
 #include <mach/prcmu.h>
 #else
 #include <linux/mfd/dbx500-prcmu.h>
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 4, 0)
-#include <linux/prcmu-qos.h>
-#endif
 #endif
 
 #define MALI_HIGH_TO_LOW_LEVEL_UTILIZATION_LIMIT 64
