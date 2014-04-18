@@ -196,6 +196,7 @@ struct amba_pl010_data {
 	void (*set_mctrl)(struct amba_device *dev, void __iomem *base, unsigned int mctrl);
 };
 
+struct uart_port;
 struct dma_chan;
 struct amba_pl011_data {
 	void (*amba_pl011_wake_peer)(struct uart_port *);
