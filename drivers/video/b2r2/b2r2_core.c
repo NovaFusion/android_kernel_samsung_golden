@@ -2287,11 +2287,11 @@ static int init_hw(struct b2r2_core *core)
 	}
 	if (!IS_ERR_OR_NULL(core->debugfs_regs_dir)) {
 		int i;
-		debugfs_create_file("all", 0666, core->debugfs_regs_dir,
+		debugfs_create_file("all", 0664, core->debugfs_regs_dir,
 				(void *)core->hw, &debugfs_b2r2_regs_fops);
 		/* Create debugfs entries for all static registers */
 		for (i = 0; i < ARRAY_SIZE(debugfs_regs); i++)
-			debugfs_create_file(debugfs_regs[i].name, 0666,
+			debugfs_create_file(debugfs_regs[i].name, 0664,
 					core->debugfs_regs_dir,
 					(void *)(((u8 *) core->hw) +
 							debugfs_regs[i].offset),
@@ -2512,22 +2512,22 @@ static int b2r2_probe(struct platform_device *pdev)
 	}
 
 	if (!IS_ERR_OR_NULL(core->debugfs_core_root_dir)) {
-		debugfs_create_file("stats", 0666, core->debugfs_core_root_dir,
+		debugfs_create_file("stats", 0664, core->debugfs_core_root_dir,
 				core, &debugfs_b2r2_stat_fops);
-		debugfs_create_file("clock", 0666, core->debugfs_core_root_dir,
+		debugfs_create_file("clock", 0664, core->debugfs_core_root_dir,
 				core, &debugfs_b2r2_clock_fops);
-		debugfs_create_file("enabled", 0666,
+		debugfs_create_file("enabled", 0664,
 				core->debugfs_core_root_dir,
 				core, &debugfs_b2r2_enabled_fops);
-		debugfs_create_u8("op_size", 0666, core->debugfs_core_root_dir,
+		debugfs_create_u8("op_size", 0664, core->debugfs_core_root_dir,
 				&core->op_size);
-		debugfs_create_u8("ch_size", 0666, core->debugfs_core_root_dir,
+		debugfs_create_u8("ch_size", 0664, core->debugfs_core_root_dir,
 				&core->ch_size);
-		debugfs_create_u8("pg_size", 0666, core->debugfs_core_root_dir,
+		debugfs_create_u8("pg_size", 0664, core->debugfs_core_root_dir,
 				&core->pg_size);
-		debugfs_create_u8("mg_size", 0666, core->debugfs_core_root_dir,
+		debugfs_create_u8("mg_size", 0664, core->debugfs_core_root_dir,
 				&core->mg_size);
-		debugfs_create_u16("min_req_time", 0666,
+		debugfs_create_u16("min_req_time", 0664,
 			core->debugfs_core_root_dir, &core->min_req_time);
 	}
 #endif

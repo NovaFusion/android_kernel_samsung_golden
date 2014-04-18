@@ -3045,16 +3045,16 @@ int b2r2_control_init(struct b2r2_control *cont)
 
 	/* Register debug fs */
 	if (!IS_ERR_OR_NULL(cont->debugfs_root_dir)) {
-		debugfs_create_file("last_request", 0666,
+		debugfs_create_file("last_request", 0664,
 			cont->debugfs_root_dir,
 			cont, &debugfs_b2r2_blt_request_fops);
-		debugfs_create_file("last_request_count", 0666,
+		debugfs_create_file("last_request_count", 0664,
 			cont->debugfs_root_dir,
 			cont, &debugfs_b2r2_req_count_fops);
-		debugfs_create_file("stats", 0666,
+		debugfs_create_file("stats", 0664,
 			cont->debugfs_root_dir,
 			cont, &debugfs_b2r2_blt_stat_fops);
-		debugfs_create_file("bypass", 0666,
+		debugfs_create_file("bypass", 0664,
 			cont->debugfs_root_dir,
 			cont, &debugfs_b2r2_bypass_fops);
 	}
