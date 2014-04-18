@@ -716,7 +716,7 @@ void __init prcmu_early_init(void)
  *
  * @return
  */
-static int __init dbx500_prcmu_probe(struct platform_device *pdev)
+static int __devinit dbx500_prcmu_probe(struct platform_device *pdev)
 {
 	struct prcmu_fops_register_data *data = dev_get_platdata(&pdev->dev);
 	int i, ret = 0;
