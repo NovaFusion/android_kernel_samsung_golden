@@ -159,27 +159,24 @@ static int __f2fs_setxattr(struct inode *inode, int index,
 			const char *name, const void *value, size_t size,
 			struct page *ipage, int);
 
-static int f2fs_initxattrs(struct inode *inode, const struct xattr *xattr_array,
-		void *page)
-{
-	const struct xattr *xattr;
-	int err = 0;
-
-	for (xattr = xattr_array; xattr->name != NULL; xattr++) {
-		err = __f2fs_setxattr(inode, F2FS_XATTR_INDEX_SECURITY,
-				xattr->name, xattr->value,
-				xattr->value_len, (struct page *)page, 0);
-		if (err < 0)
-			break;
-	}
-	return err;
-}
-
 int f2fs_init_security(struct inode *inode, struct inode *dir,
 				const struct qstr *qstr, struct page *ipage)
 {
-	return security_new_inode_init_security(inode, dir, qstr,
-				&f2fs_initxattrs, ipage);
+	int err;
+	size_t len;
+	void *value;
+	char *name;
+
+	err = security_inode_init_security(inode, dir, qstr, &name, &value, &len);
+	if (err) {
+		if (err == -EOPNOTSUPP) return 0;
+		return err;
+	}
+
+	err = __f2fs_setxattr(inode, F2FS_XATTR_INDEX_SECURITY, name, value, len, ipage, 0);
+	kfree(name);
+	kfree(value);
+	return err;
 }
 #endif
 
