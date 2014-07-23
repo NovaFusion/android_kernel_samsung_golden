@@ -88,7 +88,7 @@
 
 /* to be removed when display works */
 //#define dev_dbg	dev_info
-//#define ESD_OPERATION
+#define ESD_OPERATION
 /*
 #define ESD_TEST
 */
@@ -103,8 +103,7 @@ struct ws2401_dpi {
 	unsigned int				bl;
 	unsigned int				ldi_state;
 	unsigned char				panel_id;
-	bool 					opp_is_requested;
-	enum mcde_display_rotation		rotation;
+	enum mcde_display_rotation		rotation;	
 	struct mcde_display_device		*mdd;
 	struct lcd_device			*ld;
 	struct backlight_device			*bd;
@@ -275,8 +274,8 @@ static int try_video_mode(struct mcde_display_device *ddev,
 		video_mode->interlaced	= pdata->video_mode.interlaced;
 		video_mode->pixclock	= pdata->video_mode.pixclock;
 		/* +445681 display padding */
-		video_mode->xres_padding = ddev->x_res_padding;
-		video_mode->yres_padding = ddev->y_res_padding;
+		video_mode->xres_padding = 0;
+		video_mode->yres_padding = 0;
 		/* -445681 display padding */
 		res = 0;
 	}
@@ -348,29 +347,6 @@ static int set_video_mode(struct mcde_display_device *ddev,
 out:
 error:
 	return res;
-}
-
-static void ws2401_request_opp(struct ws2401_dpi *lcd)
-{
-	if ((!lcd->opp_is_requested) && (lcd->pd->min_ddr_opp > 0)) {
-		if (prcmu_qos_add_requirement(PRCMU_QOS_DDR_OPP,
-						LCD_DRIVER_NAME_WS2401,
-						lcd->pd->min_ddr_opp)) {
-			dev_err(lcd->dev, "add DDR OPP %d failed\n",
-				lcd->pd->min_ddr_opp);
-		}
-		dev_dbg(lcd->dev, "DDR OPP requested at %d%%\n",lcd->pd->min_ddr_opp);
-		lcd->opp_is_requested = true;
-	}
-}
-
-static void ws2401_release_opp(struct ws2401_dpi *lcd)
-{
-	if (lcd->opp_is_requested) {
-		prcmu_qos_remove_requirement(PRCMU_QOS_DDR_OPP, LCD_DRIVER_NAME_WS2401);
-		lcd->opp_is_requested = false;
-		dev_dbg(lcd->dev, "DDR OPP removed\n");
-	}
 }
 
 static int ws2401_set_rotation(struct mcde_display_device *ddev,
@@ -554,8 +530,13 @@ static int ws2401_dpi_ldi_enable(struct ws2401_dpi *lcd)
 
 	ret |= ws2401_write_dcs_sequence(lcd, DCS_CMD_SEQ_WS2401_DISPLAY_ON);
 
-	if (!ret)
+	if (!ret) {
 		lcd->ldi_state = LDI_STATE_ON;
+		ret = prcmu_qos_add_requirement(PRCMU_QOS_DDR_OPP,
+						LCD_DRIVER_NAME_WS2401, 50);
+		if (ret)
+			pr_info("pcrmu_qos_add DDR failed (%d)\n", ret);
+	}
 
 	return ret;
 }
@@ -571,6 +552,11 @@ static int ws2401_dpi_ldi_disable(struct ws2401_dpi *lcd)
 	if (lcd->pd->sleep_in_delay)
 		msleep(lcd->pd->sleep_in_delay);
 
+	if (!ret) {
+		lcd->ldi_state = LDI_STATE_OFF;
+		prcmu_qos_remove_requirement(PRCMU_QOS_DDR_OPP,
+					LCD_DRIVER_NAME_WS2401);
+	}
 	return ret;
 }
 
@@ -598,8 +584,6 @@ static int ws2401_dpi_power_on(struct ws2401_dpi *lcd)
 {
 	int ret = 0;
 	struct ssg_dpi_display_platform_data *dpd = NULL;
-
-	ws2401_request_opp(lcd);
 
 	dpd = lcd->pd;
 	if (!dpd) {
@@ -668,8 +652,6 @@ static int ws2401_dpi_power_off(struct ws2401_dpi *lcd)
 		return -EFAULT;
 	} else
 		dpd->power_on(dpd, LCD_POWER_DOWN);
-
-	ws2401_release_opp(lcd);
 
 	return 0;
 }
@@ -827,9 +809,9 @@ static ssize_t lcd_type_show(struct device *dev,
 				struct device_attribute *attr,
 				char *buf)
 {
-		return sprintf(buf, "SMD_LMS380KF01\n");
+		return sprintf(buf, "SMD_WS2401\n");
 }
-static DEVICE_ATTR(lcd_type, 0444, lcd_type_show, NULL);
+static DEVICE_ATTR(lcd_type, 0664, lcd_type_show, NULL);
 
 static ssize_t panel_id_show(struct device *dev,
 				struct device_attribute *attr,
@@ -905,7 +887,15 @@ static int __init ws2401_dpi_spi_probe(struct spi_device *spi)
 		lcd->power = FB_BLANK_POWERDOWN;
 
 		ws2401_dpi_power(lcd, FB_BLANK_UNBLANK);
+	} else {
+		ret = prcmu_qos_add_requirement(PRCMU_QOS_DDR_OPP,
+						LCD_DRIVER_NAME_WS2401, 50);
+		if (ret)
+			pr_info("pcrmu_qos_add DDR failed (%d)\n", ret);
+		lcd->power = FB_BLANK_UNBLANK;
+		lcd->ldi_state = LDI_STATE_ON;
 	}
+
 
 #ifdef ESD_OPERATION
 	lcd->esd_workqueue = create_singlethread_workqueue("esd_workqueue");
@@ -977,9 +967,6 @@ static int __devinit ws2401_dpi_mcde_probe(
 		goto invalid_port_type;
 	}
 
-	if (pdata->lcd_pwr_setup)
-		pdata->lcd_pwr_setup(&ddev->dev);
-
 	ddev->try_video_mode = try_video_mode;
 	ddev->set_video_mode = set_video_mode;
 	ddev->set_rotation = ws2401_set_rotation;
@@ -994,9 +981,6 @@ static int __devinit ws2401_dpi_mcde_probe(
 	lcd->mdd = ddev;
 	lcd->dev = &ddev->dev;
 	lcd->pd = pdata;
-
-	lcd->opp_is_requested = false;
-	ws2401_request_opp(lcd);
 
 #ifdef CONFIG_LCD_CLASS_DEVICE
 	lcd->ld = lcd_device_register("panel", &ddev->dev,
@@ -1053,6 +1037,11 @@ static int __devinit ws2401_dpi_mcde_probe(
 	lcd->earlysuspend.resume  = ws2401_dpi_mcde_late_resume;
 	register_early_suspend(&lcd->earlysuspend);
 #endif
+
+	if (prcmu_qos_add_requirement(PRCMU_QOS_DDR_OPP,
+			"codina_lcd_dpi", 50)) {
+		pr_info("pcrm_qos_add APE failed\n");
+	}
 
 	dev_dbg(&ddev->dev, "DPI display probed\n");
 
@@ -1183,6 +1172,8 @@ static void ws2401_dpi_mcde_early_suspend(
 
 	ws2401_dpi_mcde_suspend(lcd->mdd, dummy);
 
+	prcmu_qos_remove_requirement(PRCMU_QOS_DDR_OPP,
+				"codina_lcd_dpi");
 }
 
 static void ws2401_dpi_mcde_late_resume(
@@ -1196,6 +1187,11 @@ static void ws2401_dpi_mcde_late_resume(
 	if (lcd->lcd_connected)
 		enable_irq(GPIO_TO_IRQ(lcd->esd_port));
 	#endif
+
+	if (prcmu_qos_add_requirement(PRCMU_QOS_DDR_OPP,
+			"codina_lcd_dpi", 50)) {
+		pr_info("pcrm_qos_add APE failed\n");
+	}
 
 	ws2401_dpi_mcde_resume(lcd->mdd);
 

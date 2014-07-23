@@ -28,7 +28,6 @@
 #endif
 
 #define MCDE_GET_BUFFER_NAME_IOC _IO('M', 1)
-#define MCDE_SET_VSCREENINFO_IOC _IOW('D', 2, struct fb_var_screeninfo)
 
 #ifdef __KERNEL__
 #define to_mcde_fb(x) ((struct mcde_fb *)(x)->par)

@@ -14,7 +14,6 @@ mcde-objs		+= dsilink_debugfs.o
 obj-$(CONFIG_MCDE)	+= mcde.o
 
 obj-$(CONFIG_MCDE_DISPLAY_WS2401_DPI)   	+= display-ws2401_dpi.o
-obj-$(CONFIG_MCDE_DISPLAY_S6D27A1_DPI)   	+= display-s6d27a1_dpi.o
 obj-$(CONFIG_MCDE_DISPLAY_KYLE_DSI)			+= display-sec-HVA40WV1_dsi.o display-sec-nt35512_dsi.o
 obj-$(CONFIG_MCDE_DISPLAY_SAMSUNG_S6D16D0)	+= display-samsung_s6d16d0.o
 obj-$(CONFIG_MCDE_DISPLAY_SONY_ACX424AKP_DSI)   += display-sony_acx424akp_dsi.o
@@ -28,9 +27,7 @@ obj-$(CONFIG_DISPLAY_FICTIVE)			+= display-fictive.o
 obj-$(CONFIG_MCDE_DISPLAY_LMS397KF_DPI)		+= display-gavini-lms397kf.o
 obj-$(CONFIG_MCDE_DISPLAY_S6E63MN0_DPI)		+= display-s6e63m0.o smart_mtp_s6e63m0.o
 obj-$(CONFIG_MCDE_DISPLAY_S6E63M0_DSI)		+= display-s6e63m0_dsi.o smart_mtp_s6e63m0_dsi.o
-obj-$(CONFIG_MCDE_DISPLAY_NT35512_DSI)		+= display-nt35510_dsi.o display-nt35512_dsi.o
 obj-$(CONFIG_MCDE_DISPLAY_LD9040_DPI)		+= display-ld9040.o
-obj-$(CONFIG_MCDE_DISPLAY_M1316A0_DSI)      	+= display-m1316a0-dsi.o
 
 ifdef CONFIG_FB_MCDE_DEBUG
 EXTRA_CFLAGS += -DDEBUG

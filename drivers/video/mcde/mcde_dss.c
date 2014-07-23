@@ -18,9 +18,6 @@
 
 #define to_overlay(x) container_of(x, struct mcde_overlay, kobj)
 
-static int dss_update_channel_locked(struct mcde_display_device *ddev,
-					bool tripple_buffer);
-
 void overlay_release(struct kobject *kobj)
 {
 	struct mcde_overlay *ovly = to_overlay(kobj);
@@ -92,9 +89,14 @@ void mcde_dss_close_channel(struct mcde_display_device *ddev)
 }
 EXPORT_SYMBOL(mcde_dss_close_channel);
 
-static int dss_enable_display_locked(struct mcde_display_device *ddev)
+int mcde_dss_enable_display(struct mcde_display_device *ddev)
 {
 	int ret;
+
+	if (ddev->enabled)
+		return 0;
+
+	mutex_lock(&ddev->display_lock);
 	mcde_chnl_enable(ddev->chnl_state);
 
 	/* Initiate display communication */
@@ -111,63 +113,37 @@ static int dss_enable_display_locked(struct mcde_display_device *ddev)
 	dev_dbg(&ddev->dev, "Display enabled, chnl=%d\n",
 					ddev->chnl_id);
 	ddev->enabled = true;
-	return ret;
+	mutex_unlock(&ddev->display_lock);
+
+	return 0;
 
 display_failed:
 	mcde_chnl_disable(ddev->chnl_state);
-	return ret;
-}
- 
-int mcde_dss_enable_display(struct mcde_display_device *ddev)
-{
-	int ret;
-
-	if (ddev->enabled)
-		return 0;
- 
- 	mutex_lock(&ddev->display_lock);
-	ret = dss_enable_display_locked(ddev);
 	mutex_unlock(&ddev->display_lock);
-
 	return ret;
 }
 EXPORT_SYMBOL(mcde_dss_enable_display);
-
-static void dss_disable_display_locked(struct mcde_display_device *ddev)
-{
- 	mcde_chnl_stop_flow(ddev->chnl_state);
- 	(void)ddev->set_power_mode(ddev, MCDE_DISPLAY_PM_OFF);
- 	mcde_chnl_disable(ddev->chnl_state);
-	/* TODO: Disable overlays */
-	ddev->enabled = false;	
-}
 
 void mcde_dss_disable_display(struct mcde_display_device *ddev)
 {
 	if (!ddev->enabled)
 		return;
 
+	/* TODO: Disable overlays */
 	mutex_lock(&ddev->display_lock);
-	dss_disable_display_locked(ddev);
+
+	mcde_chnl_stop_flow(ddev->chnl_state);
+
+	(void)ddev->set_power_mode(ddev, MCDE_DISPLAY_PM_OFF);
+
+	mcde_chnl_disable(ddev->chnl_state);
+
+	ddev->enabled = false;
 	mutex_unlock(&ddev->display_lock);
 
 	dev_dbg(&ddev->dev, "Display disabled, chnl=%d\n", ddev->chnl_id);
 }
 EXPORT_SYMBOL(mcde_dss_disable_display);
-
-int mcde_dss_restart_display(struct mcde_display_device *ddev)
-{
-	int ret;
-
-	mutex_lock(&ddev->display_lock);
-	dss_disable_display_locked(ddev);
-	ret = dss_enable_display_locked(ddev);
-	ret = dss_update_channel_locked(ddev, true);
-	mutex_unlock(&ddev->display_lock);
-
-	return ret;
-}
-EXPORT_SYMBOL(mcde_dss_restart_display);
 
 int mcde_dss_apply_channel(struct mcde_display_device *ddev)
 {
@@ -263,25 +239,6 @@ void mcde_dss_disable_overlay(struct mcde_overlay *ovly)
 }
 EXPORT_SYMBOL(mcde_dss_disable_overlay);
 
-static int dss_update_channel_locked(struct mcde_display_device *ddev,
-					bool tripple_buffer)
-{
-	int ret;
-	/* Do not perform an update if power mode is off */
-	if (ddev->get_power_mode(ddev) == MCDE_DISPLAY_PM_OFF) {
-		ret = 0;
-		goto power_mode_off;
-	}
-
-	ret = ddev->update(ddev, tripple_buffer);
-	if (ret)
-		goto update_failed;
-
-power_mode_off:
-update_failed:
-	return ret;
-}
-
 int mcde_dss_update_overlay(struct mcde_overlay *ovly, bool tripple_buffer)
 {
 	int ret;
@@ -292,7 +249,18 @@ int mcde_dss_update_overlay(struct mcde_overlay *ovly, bool tripple_buffer)
 		return -EINVAL;
 
 	mutex_lock(&ovly->ddev->display_lock);
-	ret = dss_update_channel_locked(ovly->ddev, tripple_buffer);
+	/* Do not perform an update if power mode is off */
+	if (ovly->ddev->get_power_mode(ovly->ddev) == MCDE_DISPLAY_PM_OFF) {
+		ret = 0;
+		goto power_mode_off;
+	}
+
+	ret = ovly->ddev->update(ovly->ddev, tripple_buffer);
+	if (ret)
+		goto update_failed;
+
+power_mode_off:
+update_failed:
 	mutex_unlock(&ovly->ddev->display_lock);
 	return ret;
 }

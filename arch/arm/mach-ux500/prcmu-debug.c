@@ -1024,24 +1024,24 @@ static int setup_debugfs(void)
 	if (IS_ERR_OR_NULL(dir))
 		goto fail;
 
-	file = debugfs_create_file("ape_stats", (S_IRUGO | S_IWUGO),
+	file = debugfs_create_file("ape_stats", (S_IRUGO | S_IWUSR | S_IWGRP),
 				   dir, NULL, &ape_stats_fops);
 	if (IS_ERR_OR_NULL(file))
 		goto fail;
 
-	file = debugfs_create_file("ddr_stats", (S_IRUGO | S_IWUGO),
+	file = debugfs_create_file("ddr_stats", (S_IRUGO | S_IWUSR | S_IWGRP),
 				   dir, NULL, &ddr_stats_fops);
 	if (IS_ERR_OR_NULL(file))
 		goto fail;
 
 	if (cpu_is_u9540()) {
-		file = debugfs_create_file("vsafe_stats", (S_IRUGO | S_IWUGO),
+		file = debugfs_create_file("vsafe_stats", (S_IRUGO | S_IWUSR | S_IWGRP),
 				dir, NULL, &vsafe_stats_fops);
 		if (IS_ERR_OR_NULL(file))
 			goto fail;
 	}
 
-	file = debugfs_create_file("arm_stats", (S_IRUGO | S_IWUGO),
+	file = debugfs_create_file("arm_stats", (S_IRUGO | S_IWUSR | S_IWGRP),
 				   dir, NULL, &arm_stats_fops);
 	if (IS_ERR_OR_NULL(file))
 		goto fail;

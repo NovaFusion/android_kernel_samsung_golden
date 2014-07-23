@@ -30,7 +30,10 @@
 #include <video/mcde_display.h>
 #include <video/mcde_display-sec-dsi.h>
 
-//#define dev_dbg dev_info
+// #define USE_MTP is not set
+// #define USE_ACL is not set
+
+#define dev_dbg dev_info
 
 #define VMODE_XRES		480
 #define VMODE_YRES		800
@@ -62,91 +65,126 @@ static const u8 DCS_CMD_SEQ_MTP_READ_PARAM_SETTING[] = {
 	DCS_CMD_SEQ_END
 };
 
-#define ROTATE_0_SETTING	0x02
+#define ROTATE_0_SETTING	0x40
 #define ROTATE_180_SETTING	0x00
-
-#define GAMMA_SET_1				0x00, 0x01, 0x00, 0x43, 0x00, \
-						0x6B, 0x00, 0x87, 0x00, 0xA3, \
-						0x00, 0xCE, 0x00, 0xF1, 0x01, \
-						0x27, 0x01, 0x53, 0x01, 0x98, \
-						0x01, 0xCE, 0x02, 0x22, 0x02, \
-						0x83, 0x02, 0x78, 0x02, 0x9E, \
-						0x02, 0xDD, 0x03, 0x00, 0x03, \
-						0x2E, 0x03, 0x54, 0x03, 0x7F, \
-						0x03, 0x95, 0x03, 0xB3, 0x03, \
-						0xC2, 0x03, 0xE1, 0x03, 0xF1, \
-						0x03, 0xFE
-
-#define GAMMA_SET_2				0x00, 0x01, 0x00, 0x43, 0x00, \
-						0x6B, 0x00, 0x87, 0x00, 0xA3, \
-						0x00, 0xCE, 0x00, 0xF1, 0x01, \
-						0x27, 0x01, 0x53, 0x01, 0x98, \
-						0x01, 0xCE, 0x02, 0x22, 0x02, \
-						0x43, 0x02, 0x50, 0x02, 0x9E, \
-						0x02, 0xDD, 0x03, 0x00, 0x03, \
-						0x2E, 0x03, 0x54, 0x03, 0x7F, \
-						0x03, 0x95, 0x03, 0xB3, 0x03, \
-						0xC2, 0x03, 0xE1, 0x03, 0xF1, \
-						0x03, 0xFE
 
 /* Power ON Seq */
 /* ---------------- */
 static const u8 DCS_CMD_SEQ_PWR_ON_INIT[] = {
 
+/* Display Param */
+/*	Length	Command			Parameters */
+	9,	0xF3, /* */			0x00, 0x32, 0x00, 0x38, 0x31,
+						0x08, 0x11, 0x00,
+	6,	DCS_CMD_MANU_CMD_SEL,		0x55, 0xAA, 0x52, 0x08, 0x00,	/* Page 0 */
+	3,	0xB1, /* DOPCTR */		0x4C, 0x04,
+	2,	DCS_CMD_SET_ADDRESS_MODE,	ROTATE_0_SETTING,
+	2,	DCS_CMD_COLMOD,			0x77,		/* 24 bits per pixel */
+	2,	0xB5, /* DPRSLCTR */		0x50,		/* 480x800 */
+	2,	0xB6, /* SDHDTCTR */		0x03,		/* Source data hold time */
+	3,	0xB7, /* GSEQCTR */		0x70, 0x70,	/* Gate EQ */
+	5,	0xB8, /* SDEQCTR */		0x00, 0x06, 0x06, 0x06,	/* Source EQ */
+	4,	0xBC, /* INVCTR */		0x00, 0x00, 0x00,	/* Inversion Type */
+	6,	0xBD, /* DPFRCTR1 */		0x01, 0x84, 0x06, 0x50, 0x00, /* Disp Timing */
+	4,	0xCC, /* DPTMCTR12 */		0x03, 0x2A, 0x06,	/* aRD(Gateless) Setting */
+	DCS_CMD_SEQ_DELAY_MS,			10,
+
 /* POWER SET */
 /*	Length	Command			Parameters */
 	6,	DCS_CMD_MANU_CMD_SEL,		0x55, 0xAA, 0x52, 0x08, 0x01,	/* Page 1 */
-	4,	0xB0, /* SETAVDD */		0x09, 0x09, 0x09,
-	4,	0xB6, /* BT1CTR */		0x34, 0x34, 0x34,
-	4,	0xB1, /* SETAVEE */		0x09, 0x09, 0x09,
-	4,	0xB7, /* BT2CTR */		0x24, 0x24, 0x24,
-	4,	0xB3, /* SETVGH */		0x05, 0x05, 0x05,
+	4,	0xB0, /* SETAVDD */		0x05, 0x05, 0x05,
+	4,	0xB1, /* SETAVEE */		0x05, 0x05, 0x05,
+	4,	0xB2, /* SETVCL */		0x03, 0x03, 0x03,	/* VCL Setting for LVGL */
+	4,	0xB8, /* BT3CTR */		0x24, 0x24, 0x24,	/* Ctrl for VCL */
+	4,	0xB3, /* SETVGH */		0x0A, 0x0A, 0x0A,
 	4,	0xB9, /* BT4CTR */		0x24, 0x24, 0x24,	/* VGH boosting times/freq */
 	2,	0xBF, /* VGHCTR */		0x01,			/* VGH output ctrl */
-	4,	0xB5, /* SETVGL_REG */		0x0B, 0x0B, 0x0B,
-	4,	0xBA, /* BT5CTR */		0x24, 0x24, 0x24,
-	4,	0xBC, /* SETVPG */		0x00, 0xA3, 0x00,	/* VGMP/VGSN */
-	4,	0xBD, /* SETVGN */		0x00, 0xA3, 0x00,	/* VGMN/VGSN */
+	4,	0xB5, /* SETVGL_REG */		0x08, 0x08, 0x08,
+	4,	0xB4, /* SETVRGH */		0x2D, 0x2D, 0x2D,	/* VRGH voltage (VBIAS) */
+	4,	0xBC, /* SETVPG */		0x00, 0x50, 0x00,	/* VGMP/VGSN */
+	4,	0xBD, /* SETVGN */		0x00, 0x60, 0x00,	/* VGMN/VGSN */
+	8,	0xCE,				0x00, 0x00, 0x00, 0x00, 0x00,
+						0x00, 0x00,		/* PWM Commands */
 	DCS_CMD_SEQ_DELAY_MS,			10,
 
 /* GAMMA CONTROL */
 /*	Length	Command 		Parameters */
+	5,	0xD0, /* GMGRDCTR */		0x0D, 0x15, 0x08, 0x0C,	/* Gradient Ctrl for Gamma */
 	53,	0xD1, /* GMRCTR1  Gamma Correction for Red(positive) */
-						GAMMA_SET_1,
+						0x00, 0x37, 0x00, 0x71, 0x00,
+						0xA2, 0x00, 0xC4, 0x00, 0xDB,
+						0x01, 0x01, 0x01, 0x40, 0x01,
+						0x84, 0x01, 0xA9, 0x01, 0xD8,
+						0x02, 0x0A, 0x02, 0x44, 0x02,
+						0x85, 0x02, 0x87, 0x02, 0xBF,
+						0x02, 0xE5, 0x03, 0x0F, 0x03,
+						0x34, 0x03, 0x4F, 0x03, 0x73,
+						0x03, 0x77, 0x03, 0x94, 0x03,
+						0x9E, 0x03, 0xAC, 0x03,	0xBD,
+						0x03, 0xF1,
 	53,	0xD2, /* GMGCTR1  Gamma Correction for Green(positive) */
-						GAMMA_SET_1,
+						0x00, 0x37, 0x00, 0x71, 0x00,
+						0xA2, 0x00, 0xC4, 0x00, 0xDB,
+						0x01, 0x01, 0x01, 0x40, 0x01,
+						0x84, 0x01, 0xA9, 0x01, 0xD8,
+						0x02, 0x0A, 0x02, 0x44, 0x02,
+						0x85, 0x02, 0x87, 0x02, 0xBF,
+						0x02, 0xE5, 0x03, 0x0F, 0x03,
+						0x34, 0x03, 0x4F, 0x03, 0x73,
+						0x03, 0x77, 0x03, 0x94, 0x03,
+						0x9E, 0x03, 0xAC, 0x03,	0xBD,
+						0x03, 0xF1,
 	53,	0xD3, /* GMBCTR1  Gamma Correction for Blue(positive) */
-						GAMMA_SET_1,
+						0x00, 0x37, 0x00, 0x71, 0x00,
+						0xA2, 0x00, 0xC4, 0x00, 0xDB,
+						0x01, 0x01, 0x01, 0x40, 0x01,
+						0x84, 0x01, 0xA9, 0x01, 0xD8,
+						0x02, 0x0A, 0x02, 0x44, 0x02,
+						0x85, 0x02, 0x87, 0x02, 0xBF,
+						0x02, 0xE5, 0x03, 0x0F, 0x03,
+						0x34, 0x03, 0x4F, 0x03, 0x73,
+						0x03, 0x77, 0x03, 0x94, 0x03,
+						0x9E, 0x03, 0xAC, 0x03,	0xBD,
+						0x03, 0xF1,
 	53,	0xD4, /* GMRCTR2  Gamma Correction for Red(negative) */
-						GAMMA_SET_2,
+						0x00, 0x37, 0x00, 0x46, 0x00,
+						0x7E, 0x00, 0x9E, 0x00, 0xC2,
+						0x01, 0x01, 0x01, 0x14, 0x01,
+						0x4A, 0x01, 0x73, 0x01, 0xB8,
+						0x01, 0xDF, 0x02, 0x2F, 0x02,
+						0x68, 0x02, 0x6A, 0x02, 0xA3,
+						0x02, 0xE0, 0x02, 0xF9, 0x03,
+						0x25, 0x03, 0x43, 0x03, 0x6E,
+						0x03, 0x77, 0x03, 0x94, 0x03,
+						0x9E, 0x03, 0xAC, 0x03, 0xBD,
+						0x03, 0xF1,
 	53,	0xD5, /* GMGCTR2  Gamma Correction for Green(negative) */
-						GAMMA_SET_2,
+						0x00, 0x37, 0x00, 0x46, 0x00,
+						0x7E, 0x00, 0x9E, 0x00, 0xC2,
+						0x01, 0x01, 0x01, 0x14, 0x01,
+						0x4A, 0x01, 0x73, 0x01, 0xB8,
+						0x01, 0xDF, 0x02, 0x2F, 0x02,
+						0x68, 0x02, 0x6A, 0x02, 0xA3,
+						0x02, 0xE0, 0x02, 0xF9, 0x03,
+						0x25, 0x03, 0x43, 0x03, 0x6E,
+						0x03, 0x77, 0x03, 0x94, 0x03,
+						0x9E, 0x03, 0xAC, 0x03, 0xBD,
+						0x03, 0xF1,
 	53,	0xD6, /* GMBCTR2  Gamma Correction for Blue(negative) */
-						GAMMA_SET_2,
-/* Display Param */
-/*	Length	Command			Parameters */
-	6,	DCS_CMD_MANU_CMD_SEL,		0x55, 0xAA, 0x52, 0x08, 0x00,	/* Page 0 */
-	3,	0xB1, /* DOPCTR */		0x4C, 0x04,
-	2,	DCS_CMD_SET_ADDRESS_MODE,	ROTATE_0_SETTING,
-	2,	0xB6, /* SDHDTCTR */		0x0A,		/* Source data hold time */
-	3,	0xB7, /* GSEQCTR */		0x00, 0x00,	/* Gate EQ */
-	5,	0xB8, /* SDEQCTR */		0x01, 0x05, 0x05, 0x05,	/* Source EQ */
-	2,	0xBA, /* BT56CTR */		0x01,
-	6,	0xBD, /* DPFRCTR1 */		0x01, 0x84, 0x07, 0x32, 0x00, /* Disp Timing */
-	6,	0xBE, /* SETVCMOFF */		0x01, 0x84, 0x07, 0x31, 0x00,
-	6,	0xBF, /* VGHCTR */		0x01, 0x84, 0x07, 0x31, 0x00,
-	2, 	0x35,				0x00,
-	4,	0xCC, /* DPTMCTR12 */		0x03, 0x00, 0x00,	/* aRD(Gateless) Setting */
+						0x00, 0x37, 0x00, 0x46, 0x00,
+						0x7E, 0x00, 0x9E, 0x00, 0xC2,
+						0x01, 0x01, 0x01, 0x14, 0x01,
+						0x4A, 0x01, 0x73, 0x01, 0xB8,
+						0x01, 0xDF, 0x02, 0x2F, 0x02,
+						0x68, 0x02, 0x6A, 0x02, 0xA3,
+						0x02, 0xE0, 0x02, 0xF9, 0x03,
+						0x25, 0x03, 0x43, 0x03, 0x6E,
+						0x03, 0x77, 0x03, 0x94, 0x03,
+						0x9E, 0x03, 0xAC, 0x03, 0xBD,
+						0x03, 0xF1,
 
-	DCS_CMD_SEQ_END
-};
-
-static const u8 DCS_CMD_SEQ_SLEEP[] = {
-	1,	DCS_CMD_SET_DISPLAY_OFF,
-	DCS_CMD_SEQ_DELAY_MS,			10,
-	1,	DCS_CMD_ENTER_SLEEP_MODE,
-	DCS_CMD_SEQ_DELAY_MS,			5,
-
+	2,	0x51, /* WRDISBV */		0x6C,	/* PWM backlight brightness */
+	2,	0x53, /* WRCTRLLD */		0x2C,	/* Backlight Ctrl */
 	DCS_CMD_SEQ_END
 };
 
@@ -168,8 +206,6 @@ struct hva40wv1_lcd {
 	struct lcd_device		*ld;
 	struct backlight_device		*bd;
 	struct sec_dsi_platform_data	*pd;
-	bool				turn_on_backlight;
-	bool				justStarted;
 	u8				lcd_id[3];
 };
 
@@ -226,42 +262,6 @@ static int hva40wv1_dsi_dcs_write_sequence(struct mcde_display_device *ddev,
 	}
 
 	return ret;
-}
-
-/* Reverse order of power on and channel update as compared with MCDE default display update */
-static int hva40wv1_display_update(struct mcde_display_device *ddev,
-							bool tripple_buffer)
-{
-	struct hva40wv1_lcd *lcd = dev_get_drvdata(&ddev->dev);
-	int ret = 0;
-
-	if (ddev->power_mode != MCDE_DISPLAY_PM_ON && ddev->set_power_mode) {
-		ret = ddev->set_power_mode(ddev, MCDE_DISPLAY_PM_ON);
-		if (ret < 0) {
-			dev_warn(&ddev->dev,
-				"%s:Failed to set power mode to on\n",
-				__func__);
-			return ret;
-		}
-	}
-
-	ret = mcde_chnl_update(ddev->chnl_state, tripple_buffer);
-	if (ret < 0) {
-		dev_warn(&ddev->dev, "%s:Failed to update channel\n", __func__);
-		return ret;
-	}
-
-	mutex_lock(&lcd->lock);
-	if (lcd->turn_on_backlight == true){
-		lcd->turn_on_backlight = false;
-		/* Allow time for one frame to be sent to the display before switching on the backlight */
-		msleep(30);
-		if (lcd->pd->bl_on_off)
-			lcd->pd->bl_on_off(true);
-	}
-	mutex_unlock(&lcd->lock);
-
-	return 0;
 }
 
 static int hva40wv1_update_brightness(struct mcde_display_device *ddev, int brightness)
@@ -403,12 +403,6 @@ static int hva40wv1_display_init(struct hva40wv1_lcd *lcd)
 
 	dev_dbg(lcd->dev, "%s: Initialise display\n", __func__);
 
-	/* Turn off backlight until display is initialised */
-	if (lcd->pd->bl_on_off)
-		lcd->pd->bl_on_off(false);
-
-	lcd->turn_on_backlight = false;
-
 	ret |= hva40wv1_dsi_dcs_write_sequence(ddev, DCS_CMD_SEQ_MTP_READ_PARAM_SETTING);
 	ret |= hva40wv1_dsi_read_panel_id(lcd);
 	ret |= hva40wv1_dsi_dcs_write_sequence(ddev, DCS_CMD_SEQ_PWR_ON_INIT);
@@ -420,22 +414,36 @@ static int hva40wv1_display_init(struct hva40wv1_lcd *lcd)
 
 static int hva40wv1_display_sleep(struct hva40wv1_lcd *lcd)
 {
+	struct mcde_display_device *ddev = lcd->ddev;
+	int ret = 0;
+	int len = 1;
+
 	dev_dbg(lcd->dev, "%s: display sleep\n", __func__);
 
-	return hva40wv1_dsi_dcs_write_sequence(lcd->ddev, DCS_CMD_SEQ_SLEEP);
+	ret = hva40wv1_dsi_dcs_write_command(ddev, DCS_CMD_SET_DISPLAY_OFF, NULL, 0);
+
+	if (ret == 0) {
+		msleep(10);
+		ret = hva40wv1_dsi_dcs_write_command(ddev, DCS_CMD_ENTER_SLEEP_MODE, NULL, 0);
+		msleep(5);
+	}
+	return ret;
 }
 
 static int hva40wv1_display_exit_sleep(struct hva40wv1_lcd *lcd)
 {
+	int ret;
+
 	dev_dbg(lcd->dev, "%s: display exit sleep\n", __func__);
 
-	return hva40wv1_dsi_dcs_write_sequence(lcd->ddev, DCS_CMD_SEQ_EXIT_SLEEP);
+	ret = hva40wv1_dsi_dcs_write_sequence(lcd->ddev, DCS_CMD_SEQ_EXIT_SLEEP);
+
+	return ret;
 }
 
 #ifdef CONFIG_LCD_CLASS_DEVICE
 static int hva40wv1_set_power_mode(struct mcde_display_device *ddev,
 	enum mcde_display_power_mode power_mode);
-
 static int hva40wv1_power(struct hva40wv1_lcd *lcd, int power)
 {
 	int ret = 0;
@@ -602,8 +610,6 @@ static int hva40wv1_set_power_mode(struct mcde_display_device *ddev,
 	/* OFF -> STANDBY or OFF -> ON */
 	if (ddev->power_mode == MCDE_DISPLAY_PM_OFF &&
 					power_mode != MCDE_DISPLAY_PM_OFF) {
-
-		lcd->justStarted = false;
 		ret = hva40wv1_power_on(lcd);
 		if (ret)
 			return ret;
@@ -619,28 +625,15 @@ static int hva40wv1_set_power_mode(struct mcde_display_device *ddev,
 	if (ddev->power_mode == MCDE_DISPLAY_PM_STANDBY &&
 					power_mode == MCDE_DISPLAY_PM_ON) {
 
-		if (lcd->justStarted) {
-			lcd->justStarted = false;
-			mcde_chnl_disable(ddev->chnl_state);
-			hva40wv1_display_init(lcd);
-		}
-
 		ret = hva40wv1_display_exit_sleep(lcd);
 		if (ret)
 			return ret;
-
-		/* Flag that the backlight should be turned on after the first frame has been sent */
-		lcd->turn_on_backlight = true;
 
 		ddev->power_mode = MCDE_DISPLAY_PM_ON;
 	}
 	/* ON -> STANDBY */
 	else if (ddev->power_mode == MCDE_DISPLAY_PM_ON &&
 					power_mode <= MCDE_DISPLAY_PM_STANDBY) {
-
-		/* Turn off backlight. */
-		if (lcd->pd->bl_on_off)
-			lcd->pd->bl_on_off(false);
 
 		ret = hva40wv1_display_sleep(lcd);
 		if (ret && (power_mode != MCDE_DISPLAY_PM_OFF))
@@ -696,7 +689,6 @@ static int __devinit hva40wv1_probe(struct mcde_display_device *ddev)
 
 	ddev->set_power_mode = hva40wv1_set_power_mode;
 	ddev->set_rotation = hva40wv1_set_rotation;
-	ddev->update = hva40wv1_display_update;
 	ddev->apply_config = hva40wv1_apply_config;
 
 	ddev->native_x_res = VMODE_XRES;
@@ -710,23 +702,10 @@ static int __devinit hva40wv1_probe(struct mcde_display_device *ddev)
 	lcd->ddev = ddev;
 	lcd->dev = &ddev->dev;
 	lcd->pd = pdata;
-	lcd->justStarted = true;
-
-	gpio_request(pdata->lcd_detect, "LCD DETECT");
-
-	/* low is normal. On PBA esd_port could be HIGH */
-	if (!gpio_get_value(pdata->lcd_detect)) {
-		dev_info(&ddev->dev,"esd port is low!\n");
-		lcd->ddev->port->phy.dsi.check_pba = false;
-	} else {
-		lcd->ddev->port->phy.dsi.check_pba = true;
-		dev_info(&ddev->dev,"esd port is high!\n");
-	}
-
 	memcpy(lcd->lcd_id, pdata->lcdId, 3);
 
 #ifdef CONFIG_LCD_CLASS_DEVICE
-	lcd->ld = lcd_device_register("panel", &ddev->dev,
+	lcd->ld = lcd_device_register("hva40wv1", &ddev->dev,
 					lcd, &hva40wv1_lcd_ops);
 	if (IS_ERR(lcd->ld)) {
 		ret = PTR_ERR(lcd->ld);
@@ -756,9 +735,6 @@ static int __devinit hva40wv1_probe(struct mcde_display_device *ddev)
 						&hva40wv1_backlight_props);
 		if (IS_ERR(bd)) {
 			ret =  PTR_ERR(bd);
-			dev_err(&ddev->dev,
-				"%s: Failed to register backlight device (%d)\n",
-				__func__, ret);
 			goto backlight_device_register_failed;
 		}
 		lcd->bd = bd;
@@ -834,19 +810,6 @@ static int hva40wv1_suspend(struct mcde_display_device *ddev, \
 }
 #endif
 
-/* Power down all displays on reboot, poweroff or halt. */
-static void hva40wv1_dsi_shutdown(struct mcde_display_device *ddev)
-{
-	struct hva40wv1_lcd *lcd = dev_get_drvdata(&ddev->dev);
-
-	dev_info(&ddev->dev, "%s\n", __func__);
-	mutex_lock(&ddev->display_lock);
-	hva40wv1_power(lcd, FB_BLANK_POWERDOWN);
-	mutex_unlock(&ddev->display_lock);
-	dev_info(&ddev->dev, "end %s\n", __func__);
-
-};
-
 static struct mcde_display_driver hva40wv1_driver = {
 	.probe	= hva40wv1_probe,
 	.remove = hva40wv1_remove,
@@ -857,7 +820,6 @@ static struct mcde_display_driver hva40wv1_driver = {
 	.suspend = NULL,
 	.resume = NULL,
 #endif
-	.shutdown = hva40wv1_dsi_shutdown,
 	.driver = {
 		.name	= "mcde_disp_hva40wv1",
 	},

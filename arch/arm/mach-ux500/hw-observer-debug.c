@@ -427,14 +427,14 @@ static int __init dbx500_hw_obs_debug_init(void)
 
 	/* create file entry for each HW observer line */
 	for (i = 0; i < HWOBS_NB; i++) {
-		if (!debugfs_create_file(hwobs.cfg[i].name, S_IRUGO | S_IWUGO,
+		if (!debugfs_create_file(hwobs.cfg[i].name, S_IRUGO | S_IWUSR | S_IWGRP,
 				hwobs.dir, &hwobs.cfg[i], &hwobs_mode_fops))
 			goto fail;
 	}
 	if (!debugfs_create_file("show_all_status", S_IRUGO,
 				hwobs.dir, NULL, &hwobs_showall_fops))
 		goto fail;
-	if (!debugfs_create_file("enable_hwobs", S_IRUGO | S_IWUGO,
+	if (!debugfs_create_file("enable_hwobs", S_IRUGO | S_IWUSR | S_IWGRP,
 				hwobs.dir, NULL, &hwobs_enable_fops))
 		goto fail;
 	if (!debugfs_create_file("available_mode", S_IRUGO,

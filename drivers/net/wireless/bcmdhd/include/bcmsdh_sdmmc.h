@@ -21,18 +21,24 @@
  * software in any way with any other Broadcom software provided under a license
  * other than the GPL, without Broadcom's express prior written consent.
  *
- * $Id: bcmsdh_sdmmc.h 313732 2012-02-08 19:49:00Z $
+ * $Id: bcmsdh_sdmmc.h 362840 2012-10-15 02:15:23Z $
  */
 
 #ifndef __BCMSDH_SDMMC_H__
 #define __BCMSDH_SDMMC_H__
 
-#define sd_err(x)
+#define sd_err(x) do {printf x;} while (0)
 #define sd_trace(x)
 #define sd_info(x)
 #define sd_debug(x)
 #define sd_data(x)
 #define sd_ctrl(x)
+
+#ifdef CUSTOMER_HW4
+#define sd_trace_hw4	sd_err
+#else
+#define sd_trace_hw4	sd_trace
+#endif
 
 #define sd_sync_dma(sd, read, nbytes)
 #define sd_init_dma(sd)

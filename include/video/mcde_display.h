@@ -50,10 +50,6 @@ struct mcde_display_device {
 	struct mcde_chnl_state *chnl_state;
 	struct list_head ovlys;
 
-/* TODO: Remove once ESRAM allocator is done */
-        u32 rotbuf1;
-        u32 rotbuf2;
-
 	/* Display driver internal */
 
 	/* Native resolution for fix resolution displays.
@@ -157,5 +153,4 @@ int mcde_display_init(void);
 void mcde_display_exit(void);
 
 #endif /* __MCDE_DISPLAY__H__ */
-
 

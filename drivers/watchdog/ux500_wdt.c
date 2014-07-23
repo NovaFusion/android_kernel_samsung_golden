@@ -327,36 +327,36 @@ static int __init wdog_dbg_init(void)
 		goto fail;
 
 	if (IS_ERR_OR_NULL(debugfs_create_u8("id",
-					     S_IWUGO | S_IRUGO, wdog_dir,
+					     S_IWUSR | S_IWGRP | S_IRUGO, wdog_dir,
 					     &wdog_id)))
 		goto fail;
 
 	if (IS_ERR_OR_NULL(debugfs_create_file("config",
-					       S_IWUGO | S_IRUGO, wdog_dir,
+					       S_IWUSR | S_IWGRP | S_IRUGO, wdog_dir,
 					       (void *)WDOG_DBG_CONFIG,
 					       &wdog_dbg_fops)))
 		goto fail;
 
 	if (IS_ERR_OR_NULL(debugfs_create_file("load",
-					       S_IWUGO | S_IRUGO, wdog_dir,
+					       S_IWUSR | S_IWGRP | S_IRUGO, wdog_dir,
 					       (void *)WDOG_DBG_LOAD,
 					       &wdog_dbg_fops)))
 		goto fail;
 
 	if (IS_ERR_OR_NULL(debugfs_create_file("kick",
-					       S_IWUGO, wdog_dir,
+					       S_IWUSR | S_IWGRP, wdog_dir,
 					       (void *)WDOG_DBG_KICK,
 					       &wdog_dbg_fops)))
 		goto fail;
 
 	if (IS_ERR_OR_NULL(debugfs_create_file("enable",
-					       S_IWUGO | S_IRUGO, wdog_dir,
+					       S_IWUSR | S_IWGRP | S_IRUGO, wdog_dir,
 					       (void *)WDOG_DBG_EN,
 					       &wdog_dbg_fops)))
 		goto fail;
 
 	if (IS_ERR_OR_NULL(debugfs_create_file("disable",
-					       S_IWUGO | S_IRUGO, wdog_dir,
+					       S_IWUSR | S_IWGRP | S_IRUGO, wdog_dir,
 					       (void *)WDOG_DBG_DIS,
 					       &wdog_dbg_fops)))
 		goto fail;

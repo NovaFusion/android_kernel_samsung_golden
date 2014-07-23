@@ -626,7 +626,7 @@ static int setup_debugfs(void)
 
 	for (i = 0; i < ARRAY_SIZE(debug_entry); i++) {
 		if (IS_ERR_OR_NULL(debugfs_create_file(debug_entry[i].name,
-						       S_IWUGO | S_IRUGO,
+						       S_IWUSR | S_IWGRP | S_IRUGO,
 						       usecase_dir,
 						       NULL,
 						       debug_entry[i].fops)))
@@ -634,7 +634,7 @@ static int setup_debugfs(void)
 	}
 
 	if (IS_ERR_OR_NULL(debugfs_create_u32("exit_irq_per_s",
-					      S_IWUGO | S_IRUGO, usecase_dir,
+					      S_IWUSR | S_IWGRP | S_IRUGO, usecase_dir,
 					      &exit_irq_per_s)))
 		goto fail;
 	return 0;

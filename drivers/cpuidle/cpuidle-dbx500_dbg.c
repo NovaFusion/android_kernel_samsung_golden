@@ -1210,12 +1210,12 @@ static void __init setup_debugfs(void)
 		goto fail;
 
 	if (IS_ERR_OR_NULL(debugfs_create_file("deepest_state",
-					       S_IWUGO | S_IRUGO, cpuidle_dir,
+					       S_IWUSR | S_IWGRP | S_IRUGO, cpuidle_dir,
 					       NULL, &deepest_state_fops)))
 		goto fail;
 
 	if (IS_ERR_OR_NULL(debugfs_create_file("verbose",
-					       S_IWUGO | S_IRUGO, cpuidle_dir,
+					       S_IWUSR | S_IWGRP | S_IRUGO, cpuidle_dir,
 					       NULL, &verbose_state_fops)))
 		goto fail;
 
@@ -1225,17 +1225,17 @@ static void __init setup_debugfs(void)
 		goto fail;
 
 	if (IS_ERR_OR_NULL(debugfs_create_bool("dbg_console_enable",
-					       S_IWUGO | S_IRUGO, cpuidle_dir,
+					       S_IWUSR | S_IWGRP | S_IRUGO, cpuidle_dir,
 					       &dbg_console_enable)))
 		goto fail;
 
 	if (IS_ERR_OR_NULL(debugfs_create_bool("measure_latency",
-					       S_IWUGO | S_IRUGO, cpuidle_dir,
+					       S_IWUSR | S_IWGRP | S_IRUGO, cpuidle_dir,
 					       &measure_latency)))
 		goto fail;
 
 	if (IS_ERR_OR_NULL(debugfs_create_file("wake_latency",
-					       S_IWUGO | S_IRUGO, cpuidle_dir,
+					       S_IWUSR | S_IWGRP | S_IRUGO, cpuidle_dir,
 					       NULL,
 					       &wake_latency_fops)))
 		goto fail;

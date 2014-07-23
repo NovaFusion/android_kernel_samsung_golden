@@ -212,6 +212,8 @@ struct mcde_chnl_state {
 	bool oled_color_conversion;
 	/* If the channel or and any ovly needs to change it color conversion */
 	bool update_color_conversion;
+	/* After which VCMP is the color conversion to be changed */
+	int vcmp_cnt_to_change_col_conv;
 	struct clk *clk_dpi;
 	struct dsilink_device *dsilink;
 

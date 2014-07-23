@@ -17,7 +17,6 @@
 #include <linux/mm.h>
 #include <linux/dma-mapping.h>
 #include <linux/mutex.h>
-#include <linux/uaccess.h>
 
 #include <linux/hwmem.h>
 #include <linux/io.h>
@@ -694,18 +693,6 @@ static int mcde_fb_ioctl(struct fb_info *fbi, unsigned int cmd,
 		ret = mcde_dss_wait_for_vsync(ddev, &timestamp);
 		mutex_lock(&fbi->lock);
 		return ret;
-	}
-
-	if (cmd == MCDE_SET_VSCREENINFO_IOC) {
-		struct fb_var_screeninfo var;
-		if (copy_from_user(&var, (void *)arg, sizeof(var))) {
-			dev_warn(fbi->dev,
-				"%s: copy_from_user failed\n",
-				__func__);
-			return -EFAULT;
-		}
-		fbi->var = var;
-		return 0;
 	}
 	return -EINVAL;
 }

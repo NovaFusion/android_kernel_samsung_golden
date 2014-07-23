@@ -149,7 +149,7 @@ static int create_clk_dirs(struct clk_debug_info *cdi, int size)
 
 	for (i = 0; i < size; i++) {
 		cdi[i].enable = debugfs_create_file("enable",
-						    (S_IRUGO | S_IWUGO),
+						    (S_IRUGO | S_IWUSR | S_IWGRP),
 						    cdi[i].dir, &cdi[i],
 						    &clk_enable_fops);
 		if (!cdi[i].enable)

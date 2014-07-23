@@ -186,19 +186,19 @@ void ux500_suspend_dbg_init(void)
 	if (IS_ERR_OR_NULL(suspend_dir))
 		return;
 
-	file = debugfs_create_bool("sleep", S_IWUGO | S_IRUGO,
+	file = debugfs_create_bool("sleep", S_IWUSR | S_IWGRP | S_IRUGO,
 				   suspend_dir,
 				   &sleep_enabled);
 	if (IS_ERR_OR_NULL(file))
 		goto error;
 
-	file = debugfs_create_bool("deepsleep", S_IWUGO | S_IRUGO,
+	file = debugfs_create_bool("deepsleep", S_IWUSR | S_IWGRP | S_IRUGO,
 				   suspend_dir,
 				   &deepsleep_enabled);
 	if (IS_ERR_OR_NULL(file))
 		goto error;
 
-	file = debugfs_create_bool("enable", S_IWUGO | S_IRUGO,
+	file = debugfs_create_bool("enable", S_IWUSR | S_IWGRP | S_IRUGO,
 				   suspend_dir,
 				   &suspend_enabled);
 	if (IS_ERR_OR_NULL(file))
