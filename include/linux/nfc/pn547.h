@@ -1,5 +1,7 @@
 /*
  * Copyright (C) 2010 Trusted Logic S.A.
+ * Copyright (C) 2013 Sony Mobile Communications AB.
+ * Copyright (C) 2014 Marcin Chojnacki <marcinch7@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,18 +18,34 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#define PN547_MAGIC	0xE9
+#ifndef _PN547_H_
+#define _PN547_H_
 
-/*
- * PN547 power control via ioctl
- * PN547_SET_PWR(0): power off
- * PN547_SET_PWR(1): power on
- * PN547_SET_PWR(2): reset and power on with firmware download enabled
- */
-#define PN547_SET_PWR		_IOW(PN547_MAGIC, 0x01, unsigned int)
+#define PN547_DEVICE_NAME "pn547"
+
+enum pn547_init_deinit_cmd {
+    PN547_INIT,
+    PN547_DEINIT,
+};
+
+enum pn547_set_pwr_cmd {
+    PN547_SET_PWR_OFF,
+    PN547_SET_PWR_ON,
+    PN547_SET_PWR_FWDL,
+};
+
+enum pn547_state {
+    PN547_STATE_UNKNOWN,
+    PN547_STATE_OFF,
+    PN547_STATE_ON,
+    PN547_STATE_FWDL,
+};
 
 struct pn547_i2c_platform_data {
-	unsigned int irq_gpio;
-	unsigned int ven_gpio;
-	unsigned int firm_gpio;
+    unsigned int irq_gpio;
+    unsigned int ven_gpio;
+    unsigned int firm_gpio;
 };
+
+#endif
+
