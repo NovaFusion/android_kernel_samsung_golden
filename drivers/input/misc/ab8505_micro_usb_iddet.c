@@ -27,9 +27,6 @@
 #include <linux/switch.h>
 #include <linux/mfd/ab8500.h>
 
-/* should NOT be there... */
-#include <linux/syscalls.h>
-
 #define KEY_DEBOUCE_TIME_12MS		0x00
 #define KEY_DEBOUCE_TIME_25MS		0x01
 #define KEY_DEBOUCE_TIME_37MS		0x02
@@ -1832,18 +1829,6 @@ static void accessory_plug_detect(struct kthread_work *work)
 			accessory->cable_detected = USBSWITCH_USBHOST;
 			accessory->cable_last_detected = accessory->cable_detected;
 			mutex_unlock(&accessory->sync_id_vbus_lock);
-
-			/* HUGE WORKAROUND - REMOVE IT ASAP! */
-			dev_info(dev, "NovaFusion: USB OTG device plugged in");
-			int fd = sys_open("/sys/kernel/abb-regu/votg", O_WRONLY, 0);
-			if (fd >= 0) {
-				dev_info(dev, "NovaFusion: Turning on VOTG interface");
-				char c = '1'; //buffer to be written to sysfs
-				sys_write(fd, &c, 1);
-				sys_close(fd);
-			}
-			else dev_err(dev, "NovaFusion: Failed to open VOTG interface");
-
 			return;
 		}
 	}
@@ -2447,9 +2432,6 @@ static void accessory_unplug_detect(struct work_struct *work)
 	}
 	accessory_release_irq(CABLE_UNPLUG, accessory);
 	accessory_claim_irq(CABLE_PLUG, accessory);
-
-	/* HUGE WORKAROUND - REMOVE IT ASAP! */
-	dev_info(dev, "NovaFusion: USB OTG device unplugged");
 }
 
 static void legacy_unplug_detect(struct work_struct *work)
