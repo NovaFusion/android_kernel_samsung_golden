@@ -108,31 +108,6 @@ config CPU_FREQ_DEFAULT_GOV_INTERACTIVE
 	  you to get a full dynamic cpu frequency capable system by simply
 	  loading your cpufreq low-level hardware driver, using the
 	  'interactive' governor for latency-sensitive workloads.
-      
-config CPU_FREQ_DEFAULT_GOV_PEGASUSQ
-	bool "pegasusq"
-	select CPU_FREQ_GOV_PEGASUSQ
-	help
-	  Use the CPUFreq governor 'pegasusq' as default.
-         
-config CPU_FREQ_DEFAULT_GOV_ABYSSPLUG
-	bool "abyssplug"
-	select CPU_FREQ_GOV_ABYSSPLUG
-	help
-	  Use the CPUFreq governor 'abyssplug' as default.
-
-config CPU_FREQ_DEFAULT_GOV_HOTPLUG
-	bool "hotplug"
-	select CPU_FREQ_GOV_HOTPLUG
-	select CPU_FREQ_GOV_PERFORMANCE
-	help
-	  Use the CPUFreq governor 'hotplug' as default. This allows you
-	  to get a full dynamic frequency capable system with CPU
-	  hotplug support by simply loading your cpufreq low-level
-	  hardware driver. Be aware that not all cpufreq drivers
-	  support the hotplug governor. If unsure have a look at
-	  the help section of the driver. Fallback governor will be the
-	  performance governor.
 
 endchoice
 
@@ -207,38 +182,6 @@ config CPU_FREQ_GOV_INTERACTIVE
 	  For details, take a look at linux/Documentation/cpu-freq.
 
 	  If in doubt, say N.
-
-config CPU_FREQ_GOV_HOTPLUG
-       tristate "'hotplug' cpufreq governor"
-       depends on CPU_FREQ && NO_HZ && HOTPLUG_CPU
-       help
-         'hotplug' - this driver mimics the frequency scaling behavior
-         in 'ondemand', but with several key differences. First is
-         that frequency transitions use the CPUFreq table directly,
-         instead of incrementing in a percentage of the maximum
-         available frequency. Second 'hotplug' will offline auxillary
-         CPUs when the system is idle, and online those CPUs once the
-         system becomes busy again. This last feature is needed for
-         architectures which transition to low power states when only
-         the "master" CPU is online, or for thermally constrained
-         devices.
-
-         If you don't have one of these architectures or devices, use
-         'ondemand' instead.
-
-         If in doubt, say N.
-         
-config CPU_FREQ_GOV_PEGASUSQ
-    tristate "'pegasusq' cpufreq policy governor"
-    depends on CPU_FREQ
-    help
-	  Very good governor.
-      
-config CPU_FREQ_GOV_ABYSSPLUG
-    tristate "'abyssplug' cpufreq governor"
-    depends on CPU_FREQ
-    help
-	  'lulzactiveq' - hotplug mechanism added in lulzactive
 
 config CPU_FREQ_GOV_CONSERVATIVE
 	tristate "'conservative' cpufreq governor"
