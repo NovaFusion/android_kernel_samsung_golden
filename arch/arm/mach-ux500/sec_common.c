@@ -158,19 +158,19 @@ static const struct input_device_id sec_common_input_log_ids[] = {
 	{ },    /* Terminating entry */
 };
 
+/* movinand checksum */
+static struct device *sec_checksum;
+static unsigned int sec_checksum_pass;
+static unsigned int sec_checksum_done;
+
 #include <linux/cpufreq.h>
 #include <linux/notifier.h>
 
 static int sec_cpufreq_notifier(struct notifier_block *,
 					unsigned long, void *);
-static int sec_policy_notifier(struct notifier_block *,
-					unsigned long, void *);
 
 static struct notifier_block sec_cpufreq_notifier_block = {
 	.notifier_call = sec_cpufreq_notifier,
-};
-static struct notifier_block sec_policy_notifier_block = {
-	.notifier_call = sec_policy_notifier,
 };
 
 static DEFINE_SPINLOCK(sec_cpufreq_log_lock);
@@ -223,6 +223,7 @@ static __init int setup_boot_mode(char *opt)
 
 __setup("bootmode=", setup_boot_mode);
 
+#if defined(CONFIG_MACH_JANICE_CHN) || defined (CONFIG_MACH_GAVINI)
 u32 sec_lpm_bootmode;
 EXPORT_SYMBOL(sec_lpm_bootmode);
 
@@ -233,6 +234,7 @@ static __init int setup_lpm_boot_mode(char *opt)
 }
 
 __setup("lpm_boot=", setup_lpm_boot_mode);
+#endif
 
 u32 sec_dbug_level;
 EXPORT_SYMBOL(sec_dbug_level);
@@ -260,10 +262,6 @@ static __init int setup_default_param(char *str)
 
 __setup("set_default_param=", setup_default_param);
 
-/* movinand checksum */
-static struct device *sec_checksum;
-static unsigned int sec_checksum_pass;
-static unsigned int sec_checksum_done;
 
 static __init int setup_checksum_pass(char *str)
 {
@@ -816,16 +814,6 @@ static int sec_cpufreq_notifier(struct notifier_block *nb,
 
 	return 0;
 }
-static int sec_policy_notifier(struct notifier_block *nb,
-					unsigned long val, void *data)
-{
-	struct cpufreq_policy *policy = data;
-
-	if (val == CPUFREQ_NOTIFY)
-		printk(KERN_INFO "DVFS Governor Policy set to - %s\n", policy->governor->name);
-
-	return 0;
-}
 #endif
 
 int __init sec_common_init_post(void)
@@ -840,7 +828,6 @@ int __init sec_common_init_post(void)
 		printk(KERN_WARNING "%s: input_register_handler() failed (%d) ", __func__, retval);
 
 	cpufreq_register_notifier(&sec_cpufreq_notifier_block, CPUFREQ_TRANSITION_NOTIFIER);
-	cpufreq_register_notifier(&sec_policy_notifier_block, CPUFREQ_POLICY_NOTIFIER);
 #endif
 	return 0;
 }		/* end fn sec_common_init_post */
@@ -927,8 +914,38 @@ unsigned short sec_common_update_reboot_reason(char mode, const char *cmd)
 		reason = REBOOTMODE_DOWNLOAD;
 		break;
 	default:		/* reboot mode = normal */
-		reason = REBOOTMODE_NORMAL;
-		break;
+		/*
+		printk (KERN_INFO "sec_common_update_reboot_reason:\n    sec_get_debug_enable=%d\n    sec_get_debug_enable_user=%d\n", sec_get_debug_enable(), sec_get_debug_enable_user());
+		*/
+		if( sec_get_debug_enable() || sec_get_debug_enable_user() )
+		{
+			switch (mode) {
+#ifdef CONFIG_SAMSUNG_KERNEL_DEBUG
+			case 'L':		/* reboot mode = Lockup */
+				reason = REBOOTMODE_KERNEL_PANIC;
+				break;
+			case 'F':
+			case 'K':
+				reason = REBOOTMODE_FORCED_UPLOAD;
+				break;
+			case 'U':		/* reboot mode = Lockup */
+				reason = REBOOTMODE_USER_PANIC;
+				break;
+			case 'C':		/* reboot mode = Lockup */
+				reason = REBOOTMODE_CP_CRASH;
+				break;
+			case 'M':		/* reboot mode = Lockup */
+				reason = REBOOTMODE_MMDSP_CRASH;
+				break;
+#endif /* CONFIG_SAMSUNG_KERNEL_DEBUG */
+			default:
+				reason = REBOOTMODE_NORMAL;
+				break;
+			}
+		}else{
+			reason = REBOOTMODE_NORMAL;
+			break;
+		}
 	}
 
 #if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)

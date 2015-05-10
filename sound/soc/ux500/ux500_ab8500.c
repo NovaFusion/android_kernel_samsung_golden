@@ -447,8 +447,8 @@ static int anc_status_control_put(struct snd_kcontrol *kcontrol,
 	req = ucontrol->value.integer.value[0];
 	if (req != ANC_APPLY_FIR_IIR && req != ANC_APPLY_FIR &&
 		req != ANC_APPLY_IIR) {
-		pr_err("%s: ERROR: Unsupported status to set '%s'!\n",
-			__func__, enum_anc_state[req]);
+		/*pr_err("%s: ERROR: Unsupported status to set '%s'!\n",
+			__func__, enum_anc_state[req]);*/
 		return -EINVAL;
 	}
 	apply_fir = req == ANC_APPLY_FIR || req == ANC_APPLY_FIR_IIR;

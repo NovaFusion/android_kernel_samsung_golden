@@ -430,7 +430,7 @@ static ssize_t raw_data_read(struct device *dev,
 		accsns_power_off();
 
 	return snprintf(buf, PAGE_SIZE, "%d,%d,%d\n",
-			(xyz[0] >> 2), (xyz[1] >> 2), (xyz[2]) >> 2);
+			-(xyz[1] >> 2), (xyz[0] >> 2), (xyz[2]) >> 2);
 }
 
 static ssize_t raw_data_write(struct device *dev,
@@ -482,7 +482,6 @@ static int accsns_probe(struct i2c_client *client,
 	}
 
 	accsns_power_on();
-
 	/* read chip id */
 	ret = i2c_smbus_read_byte_data(this_client, WHO_AM_I);
 	pr_info("%s : device ID = 0x%x, reading ID = 0x%x\n", __func__,

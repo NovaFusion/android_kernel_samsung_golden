@@ -283,7 +283,7 @@ abort:
 	kfree(conf->strip_zone);
 	kfree(conf->devlist);
 	kfree(conf);
-	*private_conf = ERR_PTR(err);
+	*private_conf = NULL;
 	return err;
 }
 

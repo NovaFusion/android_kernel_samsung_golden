@@ -320,25 +320,6 @@ static void l2x0_disable(void)
 	spin_unlock_irqrestore(&l2x0_lock, flags);
 }
 
-static void __init l2x0_unlock(__u32 cache_id)
-{
-	int lockregs;
-	int i;
-
-	if (cache_id == L2X0_CACHE_ID_PART_L310)
-		lockregs = 8;
-	else
-		/* L210 and unknown types */
-		lockregs = 1;
-
-	for (i = 0; i < lockregs; i++) {
-		writel_relaxed(0x0, l2x0_base + L2X0_LOCKDOWN_WAY_D_BASE +
-			       i * L2X0_LOCKDOWN_STRIDE);
-		writel_relaxed(0x0, l2x0_base + L2X0_LOCKDOWN_WAY_I_BASE +
-			       i * L2X0_LOCKDOWN_STRIDE);
-	}
-}
-
 void __init l2x0_init(void __iomem *base, __u32 aux_val, __u32 aux_mask)
 {
 	__u32 aux;

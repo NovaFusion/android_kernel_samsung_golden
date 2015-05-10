@@ -13,7 +13,6 @@
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/cpufreq.h>
-#include <linux/err.h>
 
 /*********************************************************************
  *                     FREQUENCY TABLE HELPERS                       *
@@ -231,41 +230,6 @@ struct cpufreq_frequency_table *cpufreq_frequency_get_table(unsigned int cpu)
 	return per_cpu(cpufreq_show_table, cpu);
 }
 EXPORT_SYMBOL_GPL(cpufreq_frequency_get_table);
-
-int cpufreq_frequency_table_next_lowest(struct cpufreq_policy *policy,
-         struct cpufreq_frequency_table *table, int *index)
- {
-     unsigned int cur_freq;
-     unsigned int next_lowest_freq;
-     int optimal_index = -1;
-     int i = 0;
- 
-     if (!policy || IS_ERR(policy) || !table || IS_ERR(table) ||
-             !index || IS_ERR(index))
-         return -ENOMEM;
- 
-     cur_freq = policy->cur;
-     next_lowest_freq = policy->min;
- 
-     /* we're at the lowest frequency in the table already, bail out */
-     if (cur_freq == policy->min)
-         return -EINVAL;
- 
-     /* walk the list, find closest freq to cur_freq that is below it */
-     while(table[i].frequency != CPUFREQ_TABLE_END) {
-         if (table[i].frequency < cur_freq &&
-                 table[i].frequency >= next_lowest_freq) {
-             next_lowest_freq = table[i].frequency;
-            optimal_index = table[i].index;
-         }
- 
-         i++;
-     }
- 
-     *index = optimal_index;
-return 0;
- }
-EXPORT_SYMBOL_GPL(cpufreq_frequency_table_next_lowest);
 
 MODULE_AUTHOR("Dominik Brodowski <linux@brodo.de>");
 MODULE_DESCRIPTION("CPUfreq frequency table helpers");

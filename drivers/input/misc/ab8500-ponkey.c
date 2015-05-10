@@ -63,6 +63,7 @@ struct ab8500_ponkey_info {
 
 #ifndef CONFIG_SAMSUNG_PRODUCT_SHIP
 extern bool gpio_keys_getstate(int keycode);
+extern void gpio_keys_start_upload_modtimer(void);
 extern int jack_is_detected;
 #endif
 extern void gpio_keys_setstate(int keycode, bool bState);
@@ -147,6 +148,10 @@ static irqreturn_t ab8500_ponkey_handler(int irq, void *data)
 		if (info->pcut_wa)
 			schedule_delayed_work(&info->pcut_work, HZ * 3);
 
+#ifndef CONFIG_SAMSUNG_PRODUCT_SHIP
+		if (gpio_keys_getstate(KEY_VOLUMEUP) && jack_is_detected)
+			gpio_keys_start_upload_modtimer();
+#endif
 		gpio_keys_setstate(KEY_POWER, true);
 		info->key_state = true;
 		input_report_key(info->idev, KEY_POWER, true);

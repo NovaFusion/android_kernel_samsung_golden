@@ -50,7 +50,7 @@ static __inline__ void scm_set_cred(struct scm_cookie *scm,
 {
 	scm->pid  = get_pid(pid);
 	scm->cred = get_cred(cred);
-	cred_to_ucred(pid, cred, &scm->creds, false);
+	cred_to_ucred(pid, cred, &scm->creds);
 }
 
 static __inline__ void scm_destroy_cred(struct scm_cookie *scm)

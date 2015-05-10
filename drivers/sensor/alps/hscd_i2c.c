@@ -275,6 +275,11 @@ static int hscd_self_test_B(void)
 						__func__, buf[0]);
 				rc = 3;
 				break;
+			} else {
+				pr_err("%s: self-test-B, 1st value is 0x%x\n",
+						__func__, buf[0]);
+				rc = (int)(buf[0] | 0x10);
+				break;
 			}
 		}
 		mdelay(1);
@@ -352,7 +357,7 @@ int hscd_activate(int flgatm, int flg, int dtime)
 			buf[1] = (0x60 | (3 << 2));
 		else if (dtime <=  20)	/* 50Hz-20msec */
 			buf[1] = (0x60 | (2 << 2));
-		else if (dtime <=  70)	/* 20Hz-50msec */
+		else if (dtime <=  60)	/* 20Hz-50msec */
 			buf[1] = (0x60 | (1 << 2));
 		else	/* 10Hz-100msec */
 			buf[1] = (0x60 | (0 << 2));

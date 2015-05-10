@@ -833,13 +833,11 @@ static int tcp_transmit_skb(struct sock *sk, struct sk_buff *skb, int clone_it,
 							   &md5);
 	tcp_header_size = tcp_options_size + sizeof(struct tcphdr);
 
-	if (tcp_packets_in_flight(tp) == 0)
+	if (tcp_packets_in_flight(tp) == 0) {
 		tcp_ca_event(sk, CA_EVENT_TX_START);
-
-	/* if no packet is in qdisc/device queue, then allow XPS to select
-	 * another queue.
-	 */
-	skb->ooo_okay = sk_wmem_alloc_get(sk) == 0;
+		skb->ooo_okay = 1;
+	} else
+		skb->ooo_okay = 0;
 
 	skb_push(skb, tcp_header_size);
 	skb_reset_transport_header(skb);
@@ -1312,21 +1310,21 @@ static void tcp_cwnd_validate(struct sock *sk)
  * when we would be allowed to send the split-due-to-Nagle skb fully.
  */
 static unsigned int tcp_mss_split_point(struct sock *sk, struct sk_buff *skb,
-					unsigned int mss_now, unsigned int max_segs)
+					unsigned int mss_now, unsigned int cwnd)
 {
 	struct tcp_sock *tp = tcp_sk(sk);
-	u32 needed, window, max_len;
+	u32 needed, window, cwnd_len;
 
 	window = tcp_wnd_end(tp) - TCP_SKB_CB(skb)->seq;
-	max_len = mss_now * max_segs;
+	cwnd_len = mss_now * cwnd;
 
-	if (likely(max_len <= window && skb != tcp_write_queue_tail(sk)))
-		return max_len;
+	if (likely(cwnd_len <= window && skb != tcp_write_queue_tail(sk)))
+		return cwnd_len;
 
 	needed = min(skb->len, window);
 
-	if (max_len <= needed)
-		return max_len;
+	if (cwnd_len <= needed)
+		return cwnd_len;
 
 	return needed - needed % mss_now;
 }
@@ -1553,8 +1551,7 @@ static int tcp_tso_should_defer(struct sock *sk, struct sk_buff *skb)
 	limit = min(send_win, cong_win);
 
 	/* If a full-sized TSO skb can be sent, do it. */
-	if (limit >= min_t(unsigned int, sk->sk_gso_max_size,
-			   sk->sk_gso_max_segs * tp->mss_cache))
+	if (limit >= sk->sk_gso_max_size)
 		goto send_now;
 
 	/* Middle in queue won't get any more data, full sendable already? */
@@ -1581,11 +1578,8 @@ static int tcp_tso_should_defer(struct sock *sk, struct sk_buff *skb)
 			goto send_now;
 	}
 
-	/* Ok, it looks like it is advisable to defer.
-	 * Do not rearm the timer if already set to not break TCP ACK clocking.
-	 */
-	if (!tp->tso_deferred)
-		tp->tso_deferred = 1 | (jiffies << 1);
+	/* Ok, it looks like it is advisable to defer.  */
+	tp->tso_deferred = 1 | (jiffies << 1);
 
 	return 1;
 
@@ -1783,9 +1777,7 @@ static int tcp_write_xmit(struct sock *sk, unsigned int mss_now, int nonagle,
 		limit = mss_now;
 		if (tso_segs > 1 && !tcp_urg_mode(tp))
 			limit = tcp_mss_split_point(sk, skb, mss_now,
-						    min_t(unsigned int,
-							  cwnd_quota,
-							  sk->sk_gso_max_segs));
+						    cwnd_quota);
 
 		if (skb->len > limit &&
 		    unlikely(tso_fragment(sk, skb, limit, mss_now, gfp)))

@@ -107,8 +107,6 @@ static int x25_state1_machine(struct sock *sk, struct sk_buff *skb, int frametyp
 			/*
 			 *	Parse the data in the frame.
 			 */
-			if (!pskb_may_pull(skb, X25_STD_MIN_LEN))
-				goto out_clear;
 			skb_pull(skb, X25_STD_MIN_LEN);
 
 			len = x25_parse_address_block(skb, &source_addr,
@@ -129,11 +127,9 @@ static int x25_state1_machine(struct sock *sk, struct sk_buff *skb, int frametyp
 			 *	Copy any Call User Data.
 			 */
 			if (skb->len > 0) {
-				if (skb->len > X25_MAX_CUD_LEN)
-					goto out_clear;
-
-				skb_copy_bits(skb, 0, x25->calluserdata.cuddata,
-					skb->len);
+				skb_copy_from_linear_data(skb,
+					      x25->calluserdata.cuddata,
+					      skb->len);
 				x25->calluserdata.cudlength = skb->len;
 			}
 			if (!sock_flag(sk, SOCK_DEAD))
@@ -141,9 +137,6 @@ static int x25_state1_machine(struct sock *sk, struct sk_buff *skb, int frametyp
 			break;
 		}
 		case X25_CLEAR_REQUEST:
-			if (!pskb_may_pull(skb, X25_STD_MIN_LEN + 2))
-				goto out_clear;
-
 			x25_write_internal(sk, X25_CLEAR_CONFIRMATION);
 			x25_disconnect(sk, ECONNREFUSED, skb->data[3], skb->data[4]);
 			break;
@@ -171,9 +164,6 @@ static int x25_state2_machine(struct sock *sk, struct sk_buff *skb, int frametyp
 	switch (frametype) {
 
 		case X25_CLEAR_REQUEST:
-			if (!pskb_may_pull(skb, X25_STD_MIN_LEN + 2))
-				goto out_clear;
-
 			x25_write_internal(sk, X25_CLEAR_CONFIRMATION);
 			x25_disconnect(sk, 0, skb->data[3], skb->data[4]);
 			break;
@@ -186,11 +176,6 @@ static int x25_state2_machine(struct sock *sk, struct sk_buff *skb, int frametyp
 			break;
 	}
 
-	return 0;
-
-out_clear:
-	x25_write_internal(sk, X25_CLEAR_REQUEST);
-	x25_start_t23timer(sk);
 	return 0;
 }
 
@@ -221,9 +206,6 @@ static int x25_state3_machine(struct sock *sk, struct sk_buff *skb, int frametyp
 			break;
 
 		case X25_CLEAR_REQUEST:
-			if (!pskb_may_pull(skb, X25_STD_MIN_LEN + 2))
-				goto out_clear;
-
 			x25_write_internal(sk, X25_CLEAR_CONFIRMATION);
 			x25_disconnect(sk, 0, skb->data[3], skb->data[4]);
 			break;
@@ -322,12 +304,6 @@ static int x25_state3_machine(struct sock *sk, struct sk_buff *skb, int frametyp
 	}
 
 	return queued;
-
-out_clear:
-	x25_write_internal(sk, X25_CLEAR_REQUEST);
-	x25->state = X25_STATE_2;
-	x25_start_t23timer(sk);
-	return 0;
 }
 
 /*
@@ -337,13 +313,13 @@ out_clear:
  */
 static int x25_state4_machine(struct sock *sk, struct sk_buff *skb, int frametype)
 {
-	struct x25_sock *x25 = x25_sk(sk);
-
 	switch (frametype) {
 
 		case X25_RESET_REQUEST:
 			x25_write_internal(sk, X25_RESET_CONFIRMATION);
 		case X25_RESET_CONFIRMATION: {
+			struct x25_sock *x25 = x25_sk(sk);
+
 			x25_stop_timer(sk);
 			x25->condition = 0x00;
 			x25->va        = 0;
@@ -355,9 +331,6 @@ static int x25_state4_machine(struct sock *sk, struct sk_buff *skb, int frametyp
 			break;
 		}
 		case X25_CLEAR_REQUEST:
-			if (!pskb_may_pull(skb, X25_STD_MIN_LEN + 2))
-				goto out_clear;
-
 			x25_write_internal(sk, X25_CLEAR_CONFIRMATION);
 			x25_disconnect(sk, 0, skb->data[3], skb->data[4]);
 			break;
@@ -366,12 +339,6 @@ static int x25_state4_machine(struct sock *sk, struct sk_buff *skb, int frametyp
 			break;
 	}
 
-	return 0;
-
-out_clear:
-	x25_write_internal(sk, X25_CLEAR_REQUEST);
-	x25->state = X25_STATE_2;
-	x25_start_t23timer(sk);
 	return 0;
 }
 

@@ -23,8 +23,6 @@
 extern struct class * power_supply_class ;
 extern struct class *sec_class;
 
-extern u32 sec_lpm_bootmode;
-
 struct charger_extra_sysfs
 {
 	struct device *dev;	
@@ -570,7 +568,7 @@ static int battery_get_property(struct power_supply *psy,
 		break;
 	
 	case POWER_SUPPLY_PROP_LPM_MODE:    /* LPM mode */
-		val->intval = sec_lpm_bootmode;
+		val->intval = charger_extra_sysfs.batt_lp_charging; /* 0 or 1 */
 		break;
 
 	case POWER_SUPPLY_PROP_REINIT_CAPACITY:    /* Re-initialize capacity */

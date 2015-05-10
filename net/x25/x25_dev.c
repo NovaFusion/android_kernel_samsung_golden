@@ -32,9 +32,6 @@ static int x25_receive_data(struct sk_buff *skb, struct x25_neigh *nb)
 	unsigned short frametype;
 	unsigned int lci;
 
-	if (!pskb_may_pull(skb, X25_STD_MIN_LEN))
-		return 0;
-
 	frametype = skb->data[2];
 	lci = ((skb->data[0] << 8) & 0xF00) + ((skb->data[1] << 0) & 0x0FF);
 
@@ -117,9 +114,6 @@ int x25_lapb_receive_frame(struct sk_buff *skb, struct net_device *dev,
 		printk(KERN_DEBUG "X.25: unknown neighbour - %s\n", dev->name);
 		goto drop;
 	}
-
-	if (!pskb_may_pull(skb, 1))
-		return 0;
 
 	switch (skb->data[0]) {
 

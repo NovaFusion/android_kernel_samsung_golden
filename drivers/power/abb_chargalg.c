@@ -470,7 +470,7 @@ static int ab8500_chargalg_check_charger_connection(struct ab8500_chargalg *di)
 		 */
 		if ((di->chg_info.conn_chg & AC_CHG) &&
 			!di->susp_status.ac_suspended) {
-			dev_dbg(di->dev, "Charging source is AC\n");
+			dev_samsung_dbg(di->dev, "Charging source is AC\n");
 			if (di->chg_info.charger_type != AC_CHG) {
 				di->chg_info.charger_type = AC_CHG;
 				di->charge_timeout_jiffies=jiffies + get_charge_timeout_duration(di);
@@ -480,7 +480,7 @@ static int ab8500_chargalg_check_charger_connection(struct ab8500_chargalg *di)
 			}
 		} else if ((di->chg_info.conn_chg & USB_CHG) &&
 			!di->susp_status.usb_suspended) {
-			dev_dbg(di->dev, "Charging source is USB\n");
+			dev_samsung_dbg(di->dev, "Charging source is USB\n");
 			di->chg_info.charger_type = USB_CHG;
 			di->initial_timeout_expire=0 ;
 			di->initial_timeout_expire_under_threshold = 0;
@@ -489,11 +489,11 @@ static int ab8500_chargalg_check_charger_connection(struct ab8500_chargalg *di)
 		} else if (di->chg_info.conn_chg &&
 			(di->susp_status.ac_suspended ||
 			di->susp_status.usb_suspended)) {
-			dev_dbg(di->dev, "Charging is suspended\n");
+			dev_samsung_dbg(di->dev, "Charging is suspended\n");
 			di->chg_info.charger_type = NO_CHG;
 			ab8500_chargalg_state_to(di, STATE_SUSPENDED_INIT);
 		} else {
-			dev_dbg(di->dev, "Charging source is OFF\n");
+			dev_samsung_dbg(di->dev, "Charging source is OFF\n");
 			di->chg_info.charger_type = NO_CHG;
 			ab8500_chargalg_state_to(di, STATE_HANDHELD_INIT);
 		}
@@ -942,17 +942,17 @@ static void ab8500_chargalg_end_of_charge(struct ab8500_chargalg *di)
 
 			if (!di->full_charging_status_1st) {
 				if (++di->eoc_cnt_1st >= EOC_COND_CNT_1ST) {
-					dev_dbg(di->dev,
+					dev_samsung_dbg(di->dev,
 					"1st Full Charging EOC reached!\n");
 					di->eoc_cnt_1st = 0;
 					di->full_charging_status_1st = true;
-					dev_dbg(di->dev,
+					dev_samsung_dbg(di->dev,
 					 "Full charging status will be shown \
 in the UI, BUT NOT Real Full charging\n");
 					power_supply_changed(&di->chargalg_psy);
 
 				} else {
-					dev_dbg(di->dev,
+					dev_samsung_dbg(di->dev,
 					"1st Full Charging EOC limit reached \
 for the %d time, out of %d before EOC\n",  di->eoc_cnt_1st, EOC_COND_CNT_1ST);
 				}
@@ -969,11 +969,11 @@ for the %d time, out of %d before EOC\n",  di->eoc_cnt_1st, EOC_COND_CNT_1ST);
 				di->charge_status = POWER_SUPPLY_STATUS_FULL;
 				di->maintenance_chg = true;
 				di->full_charging_status_1st = false;
-				dev_dbg(di->dev, "real EOC reached!\n");
+				dev_samsung_dbg(di->dev, "real EOC reached!\n");
 				power_supply_changed(&di->chargalg_psy);
-				dev_dbg(di->dev, "Charging is end\n");
+				dev_samsung_dbg(di->dev, "Charging is end\n");
 			} else {
-				dev_dbg(di->dev,
+				dev_samsung_dbg(di->dev,
 				" real EOC limit reached for the %d"
 				" time, out of %d before EOC\n",
 						di->eoc_cnt_2nd,
@@ -1020,7 +1020,7 @@ static enum maxim_ret ab8500_chargalg_chg_curr_maxim(struct ab8500_chargalg *di)
 	delta_i = di->ccm.original_iset - di->batt_data.inst_curr;
 
 	if (di->events.vbus_collapsed) {
-		dev_dbg(di->dev, "Charger voltage has collapsed %d\n",
+		dev_samsung_dbg(di->dev, "Charger voltage has collapsed %d\n",
 				di->ccm.wait_cnt);
 		if (di->ccm.wait_cnt == 0) {
 			dev_dbg(di->dev, "lowering current\n");
@@ -1042,7 +1042,7 @@ static enum maxim_ret ab8500_chargalg_chg_curr_maxim(struct ab8500_chargalg *di)
 	di->ccm.wait_cnt = 0;
 
 	if ((di->batt_data.inst_curr > di->ccm.original_iset)) {
-		dev_dbg(di->dev, " Maximization Ibat (%dmA) too high"
+		dev_samsung_dbg(di->dev, " Maximization Ibat (%dmA) too high"
 			" (limit %dmA) (current iset: %dmA)!\n",
 			di->batt_data.inst_curr, di->ccm.original_iset,
 			di->ccm.current_iset);

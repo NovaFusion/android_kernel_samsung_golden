@@ -1012,7 +1012,7 @@ static int show_vfsmnt(struct seq_file *m, void *v)
 	seq_putc(m, ' ');
 	show_type(m, mnt->mnt_sb);
 
-	/* falsely report read only for mmcblk0p19 so that reboot/power off will go through (Meticulus) */      
+	/* falsely report read only for mmcblk0p19 so that reboot/power off will go through */      
 	if (strstr(mnt->mnt_devname, "mmcblk0p19"))
 		seq_puts(m, " ro");
 	else
@@ -1250,9 +1250,8 @@ void umount_tree(struct vfsmount *mnt, int propagate, struct list_head *kill)
 		list_del_init(&p->mnt_expire);
 		list_del_init(&p->mnt_list);
 		__touch_mnt_namespace(p->mnt_ns);
-		if (p->mnt_ns)
-			__mnt_make_shortterm(p);
 		p->mnt_ns = NULL;
+		__mnt_make_shortterm(p);
 		list_del_init(&p->mnt_child);
 		if (p->mnt_parent != p) {
 			p->mnt_parent->mnt_ghosts++;

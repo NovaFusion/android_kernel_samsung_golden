@@ -86,11 +86,131 @@ endmenu
 if MACH_SAMSUNG_UX500
 menu "Samsung Ux500 Options"
 
+config SAMSUNG_KERNEL_DEBUG
+        bool "Samsung Kernel Debuging Code"
+	select SEC_DEBUG
+        default n
+
+config SAMSUNG_KERNEL_DEBUG_USER
+	bool "Forced crash by key combination"
+	default n
+
+config SAMSUNG_USE_GETLOG
+	bool "Samsung getLog Debuging Feature"
+	default n
+	help
+		Add a MARK string to the kernel log message indicating
+		starting addresses of 'FrameBuffer / printk Log buffer /
+		Platform log buffer. This feature is used to extract
+		debuggin information from log messages.
+
+config SAMSUNG_ADD_GAFORENSICINFO
+	bool "Samsung GAF Debuging Feature"
+	default n
+	help
+		Add additional information to the ram dump. This information
+		will be analized in GAF Tool.
+
+config SAMSUNG_USE_LOGGER_ADDON
+	bool "Samsung Use add-ons for android's logger"
+	default n
+	help
+		This feature make a log message which is started
+		with !@ is displayed throught printk function.
+		This also adds more platform logges in RAM-CONSOLE.
+
+config SAMSUNG_PASS_PLATFORM_LOG_TO_KERNEL
+	bool "Samsung Pass Platform Log to Kernel"
+	default n
+	help
+		This feature make a log message which is started with !@ is
+		displaye through printk function.
+
+config SAMSUNG_USE_SEC_LOG_BUF
+	bool "Samsung Use SEC_LOG_BUF"
+	default n
+	help
+		This feature stores all serial log messages into the
+		SEC_LOG_BUF area.
+
+config SAMSUNG_USE_LAST_SEC_LOG_BUF
+	bool "Samsung Use LAST_SEC_LOG_BUF"
+	depends on SAMSUNG_USE_SEC_LOG_BUF
+	default n
+	help
+		This feature creats a node to read contents of sec_log_buf
+		area just before booting into kernel from bootloader.
+		This is very helpful to read sec_log_buf area without reset
+		or entering upload mode.
+
+config SAMSUNG_REPLACE_LAST_KMSG
+	bool "Samsung Replace last_kmsg with SEC_LOG_BUF"
+	depends on SAMSUNG_USE_LAST_SEC_LOG_BUF && !ANDROID_RAM_CONSOLE
+	default n
+	help
+		This feture will replace '/proc/last_kmsg' with SEC_LOG_BUF.
+		SEC_LOG_BUF and ANDROID_RAM_CONSOLE are similar features so,
+		they are sometimes not needed at the same time. As a result,
+		if this feature is enabled, SEC_LOG_BUF can be read through
+		out '/proc/last_kmsg' node.
+
 config CONNECTOR_SAMSUNG_3PI
 	tristate "3 Pole Interface connector support"
 	default n
 	help
 		Say Y here if you want to use a 3PI headset connector.
+
+menu "SAMSUNG Common Debugging Features"
+menuconfig SEC_DEBUG
+	bool "Samsung TN Ramdump Feature"
+	default y
+	help
+		Samsung TN
+		Ramdump Feature.
+		Use INFORM3
+		and magic number.
+
+config SEC_DEBUG_SCHED_LOG
+	bool "Samsung Scheduler Logging Feature"
+	depends on SEC_DEBUG
+	default n
+	help
+		Samsung Scheduler
+		Logging Feature
+		for
+		Debug use.
+
+config SEC_DEBUG_SEMAPHORE_LOG
+	bool "Samsung Semaphore Logging Feature"
+	depends on SEC_DEBUG
+	default n
+	help
+		Samsung
+		Semaphore
+		Logging Feature
+		for Debug use.
+
+config SEC_DEBUG_USER
+	bool "Panic on Userspace fault"
+	depends on SEC_DEBUG
+	default y
+	help
+		Panic
+		on
+		Userspace
+		fault.
+
+config SEC_DEBUG_IRQ_EXIT_LOG
+	bool "Temporary Logging for IRQ delay"
+	depends on SEC_DEBUG
+	default n
+	help
+		Verbose
+		Logging
+		for IRQ
+		dealy.
+
+endmenu
 endmenu
 endif
 config MACH_SAMSUNG_UX500
@@ -149,6 +269,10 @@ endchoice
 menu "Samsung Product Features"
 config SAMSUNG_PRODUCT_SHIP
         bool "set up for product for shipping"
+config SEC_DEBUG_LEVEL
+	int "set up debug level"
+	default 1
+source "arch/arm/mach-ux500/sec_debug/Kconfig"
 endmenu
 endif
 

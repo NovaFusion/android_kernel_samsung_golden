@@ -495,8 +495,8 @@ static int sid_apply_control_put(struct snd_kcontrol *kcontrol,
 	pr_debug("%s: Enter\n", __func__);
 
 	if (ucontrol->value.integer.value[0] != 1) {
-		pr_err("%s: ERROR: This control supports 'Apply' only!\n",
-			__func__);
+		/*pr_err("%s: ERROR: This control supports 'Apply' only!\n",
+			__func__);*/
 		return ret;
 	}
 

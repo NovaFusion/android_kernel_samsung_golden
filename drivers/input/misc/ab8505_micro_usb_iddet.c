@@ -173,8 +173,6 @@
 #define UART_BOOT_ON_MAX	800
 #define HEADSET_MAX		1158
 
-extern void set_android_switch_state(int state);
-
 enum irq_type_e {
 	CABLE_PLUG,
 	CABLE_UNPLUG,
@@ -1221,9 +1219,6 @@ static int audio_dev_type1(struct usb_accessory_state *accessory,
 							 __func__, __LINE__);
 		return ret;
 	}
-
-	//KSND
-	set_android_switch_state(connected);
 
 	return ret;
 }

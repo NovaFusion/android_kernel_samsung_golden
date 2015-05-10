@@ -250,7 +250,7 @@ void bma222e_activate(int flgatm, int flg, int dtime)
 	u8 buf[2];
 
 	int reg = 0;
-
+	
 	if (flg != 0) {
 		flg = 1;
 		buf[0] = BMA222E_REG14;
@@ -258,18 +258,19 @@ void bma222e_activate(int flgatm, int flg, int dtime)
 		bma222e_i2c_writem(buf, 2);
 		msleep(20);
 	}
-
+	
 	buf[0] = BMA222E_REG0F;
 	buf[1] = 0x03;		/*g-range +/-2g*/
 	bma222e_i2c_writem(buf, 2);
 
+	
 	buf[0] = BMA222E_REG10;
 	buf[1] = BANDWIDTH_15_63;
 	bma222e_i2c_writem(buf, 2);
 
 	bma222e_i2c_readm(buf, 1);
 	reg = (int)((s8)buf[0]);
-
+	
 	if (flg == 0) {
 		buf[1] = 0x80; /*sleep*/
 	} else {
@@ -326,7 +327,7 @@ static int accel_open_calibration(void)
 		return -1;
 	}
 
-	pr_info("%s: %d, %d, %d\n", __func__,
+	printk(KERN_INFO "%s: %d, %d, %d\n", __func__,
 			caldata.x, caldata.y, caldata.z);
 	return err;
 }
@@ -364,7 +365,7 @@ static int accel_do_calibrate(int enable)
 		caldata.z = 0xffff;
 	}
 
-	pr_info("%s: cal data (%d,%d,%d)\n", __func__,
+	printk(KERN_INFO "%s: cal data (%d,%d,%d)\n", __func__,
 			caldata.x, caldata.y, caldata.z);
 
 	old_fs = get_fs();
@@ -404,7 +405,7 @@ static ssize_t accel_calibration_show(struct device *dev,
 	if (err < 0)
 		pr_err("%s: accel_open_calibration() failed\n", __func__);
 
-	pr_info("%d %d %d %d\n",
+	printk(KERN_INFO "%d %d %d %d\n",
 			err, caldata.x, caldata.y, caldata.z);
 
 	count = sprintf(buf, "%d %d %d %d\n",
@@ -422,7 +423,10 @@ static ssize_t accel_calibration_store(struct device *dev,
 	err = strict_strtoll(buf, 10, &enable);
 	if (err < 0)
 		return err;
-
+#if 0
+	if (!atomic_read(&flgEna))
+		bma222e_power_on();
+#endif
 	err = accel_do_calibrate((int)enable);
 	if (err < 0)
 		pr_err("%s: accel_do_calibrate() failed\n", __func__);
@@ -432,6 +436,10 @@ static ssize_t accel_calibration_store(struct device *dev,
 		caldata.y = 0;
 		caldata.z = 0;
 	}
+#if 0
+	if (!atomic_read(&flgEna))
+		bma222e_power_off();
+#endif
 	return size;
 }
 
@@ -440,11 +448,17 @@ static ssize_t raw_data_read(struct device *dev,
 	struct device_attribute *attr, char *buf)
 {
 	int xyz[3] = {0, };
-
+#if 0
+	if (!atomic_read(&flgEna))
+		bma222e_power_on();
+#endif
 	bma222e_get_acceleration_data(xyz);
-
+#if 0
+	if (!atomic_read(&flgEna))
+		bma222e_power_off();
+#endif
 	return snprintf(buf, PAGE_SIZE, "%d,%d,%d\n",
-		-(xyz[1] >> 2), (xyz[0] >> 2), (xyz[2] >> 2));
+			-(xyz[1] >> 2), (xyz[0] >> 2), (xyz[2] >> 2));
 
 }
 
@@ -516,13 +530,16 @@ static int bma222e_probe(struct i2c_client *client,
 		}
 		goto err_setup_regulator;
 	}
+#if 0
+	bma222e_power_off();
+#endif
 
 	sensors_register(bma_device, NULL, bma222e_attrs,
 		"accelerometer_sensor");
 
 	atomic_set(&flgEna, 0);
 	atomic_set(&delay, 100);
-
+	
 	pr_info("%s: success.\n", __func__);
 	return 0;
 

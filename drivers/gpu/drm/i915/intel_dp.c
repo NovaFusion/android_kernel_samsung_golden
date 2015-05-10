@@ -531,18 +531,7 @@ intel_dp_i2c_aux_ch(struct i2c_adapter *adapter, int mode,
 			DRM_DEBUG_KMS("aux_ch native nack\n");
 			return -EREMOTEIO;
 		case AUX_NATIVE_REPLY_DEFER:
-			/*
-			 * For now, just give more slack to branch devices. We
-			 * could check the DPCD for I2C bit rate capabilities,
-			 * and if available, adjust the interval. We could also
-			 * be more careful with DP-to-Legacy adapters where a
-			 * long legacy cable may force very low I2C bit rates.
-			 */
-			if (intel_dp->dpcd[DP_DOWNSTREAMPORT_PRESENT] &
-			    DP_DWN_STRM_PORT_PRESENT)
-				usleep_range(500, 600);
-			else
-				usleep_range(300, 400);
+			udelay(100);
 			continue;
 		default:
 			DRM_ERROR("aux_ch invalid native reply 0x%02x\n",

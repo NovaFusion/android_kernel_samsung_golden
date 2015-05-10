@@ -21,42 +21,6 @@
 #include <linux/ctype.h>
 #include <linux/leds.h>
 #include "leds.h"
-#ifdef CONFIG_GENERIC_BLN
-#include <linux/bln.h>
-
-struct led_classdev *bln_led_cdev;
-
-static int led_bln_enable(int led_mask)
-{
-	led_set_brightness(bln_led_cdev, bln_led_cdev->max_brightness);
-	return 0;
-}
-
-static int led_bln_disable(int led_mask)
-{
-	led_set_brightness(bln_led_cdev, LED_OFF);
-	return 0;
-}
-
-static int led_bln_power_on(void)
-{
-	return 0;
-}
-
-static int led_bln_power_off(void)
-{
-	return 0;
-}
-
-static struct bln_implementation led_bln = {
-	.enable    = led_bln_enable,
-	.disable   = led_bln_disable,
-	.power_on  = led_bln_power_on,
-	.power_off = led_bln_power_off,
-	.led_count = 1
-};
-
-#endif
 
 static struct class *leds_class;
 
@@ -268,14 +232,6 @@ int led_classdev_register(struct device *parent, struct led_classdev *led_cdev)
 
 	printk(KERN_DEBUG "Registered led device: %s\n",
 			led_cdev->name);
-
-#ifdef CONFIG_GENERIC_BLN
-	if (strcmp(led_cdev, "button-backlight"))
-	{
-		bln_led_cdev = led_cdev;
-		register_bln_implementation(&led_bln);
-	}
-#endif
 
 	return 0;
 }

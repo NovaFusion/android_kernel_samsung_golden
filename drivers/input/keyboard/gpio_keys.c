@@ -402,6 +402,19 @@ static struct attribute_group sec_key_attr_group = {
 };
 
 #ifndef CONFIG_SAMSUNG_PRODUCT_SHIP
+extern void dump_all_task_info(void);
+extern void dump_cpu_stat(void);
+void enter_upload_mode(unsigned long val)
+{
+	bool uploadmode = true;
+	int i;
+	struct gpio_keys_button *pButton;
+	if (g_bVolUp && jack_is_detected && g_bPower) {
+		dump_all_task_info();
+		dump_cpu_stat();
+		panic("__forced_upload");
+	}
+}
 bool gpio_keys_getstate(int keycode)
 {
 	switch (keycode) {
@@ -417,6 +430,12 @@ bool gpio_keys_getstate(int keycode)
 	return 0;
 }
 EXPORT_SYMBOL(gpio_keys_getstate);
+void gpio_keys_start_upload_modtimer(void)
+{
+	mod_timer(&debug_timer, jiffies + HZ*2);
+	printk(KERN_WARNING "[Key] Waiting for upload mode for 2 seconds.\n");
+}
+EXPORT_SYMBOL(gpio_keys_start_upload_modtimer);
 #endif //CONFIG_SAMSUNG_PRODUCT_SHIP
 void gpio_keys_setstate(int keycode, bool bState)
 {
@@ -688,6 +707,8 @@ static int __devinit gpio_keys_probe(struct platform_device *pdev)
 #if !defined(CONFIG_SAMSUNG_PRODUCT_SHIP)
 	/* Initialize for Forced Upload mode */
 	g_pdata = pdata;
+	init_timer(&debug_timer);
+	debug_timer.function = enter_upload_mode;
 #endif
 
 	return 0;

@@ -62,8 +62,6 @@
 #define CREATE_TRACE_POINTS
 #include <trace/events/module.h>
 
-#define FORCE_LOAD
-
 #if 0
 #define DEBUGP printk
 #else
@@ -1040,27 +1038,21 @@ static int check_version(Elf_Shdr *sechdrs,
 		if (strcmp(versions[i].name, symname) != 0)
 			continue;
 
-#ifdef FORCE_LOAD
-		return 1;
-#else
 		if (versions[i].crc == maybe_relocated(*crc, crc_owner))
 			return 1;
 		DEBUGP("Found checksum %lX vs module %lX\n",
 		       maybe_relocated(*crc, crc_owner), versions[i].crc);
 		goto bad_version;
-#endif
 	}
 
 	printk(KERN_WARNING "%s: no symbol version for %s\n",
 	       mod->name, symname);
 	return 0;
 
-#ifndef FORCE_LOAD
 bad_version:
 	printk("%s: disagrees about version of symbol %s\n",
 	       mod->name, symname);
 	return 0;
-#endif
 }
 
 static inline int check_modstruct_version(Elf_Shdr *sechdrs,
@@ -1993,14 +1985,12 @@ static void set_license(struct module *mod, const char *license)
 	if (!license)
 		license = "unspecified";
 
-#ifndef FORCE_LOAD
 	if (!license_is_gpl_compatible(license)) {
 		if (!test_taint(TAINT_PROPRIETARY_MODULE))
 			printk(KERN_WARNING "%s: module license '%s' taints "
 				"kernel.\n", mod->name, license);
 		add_taint_module(mod, TAINT_PROPRIETARY_MODULE);
 	}
-#endif
 }
 
 /* Parse tag=value strings from .modinfo section */
@@ -2613,10 +2603,6 @@ static int check_module_license_and_versions(struct module *mod)
 
 	/* driverloader was caught wrongly pretending to be under GPL */
 	if (strcmp(mod->name, "driverloader") == 0)
-		add_taint_module(mod, TAINT_PROPRIETARY_MODULE);
-
-	/* lve claims to be GPL but upstream won't provide source */
-	if (strcmp(mod->name, "lve") == 0)
 		add_taint_module(mod, TAINT_PROPRIETARY_MODULE);
 
 #ifdef CONFIG_MODVERSIONS

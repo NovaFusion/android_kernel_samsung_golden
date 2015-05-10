@@ -318,10 +318,6 @@ void report_jack_status(struct abx500_ad *dd)
 		value |= SND_JACK_MICROPHONE;
 	if (jack_supports_spkr(dd->jack_type))
 		value |= (SND_JACK_HEADPHONE | SND_JACK_LINEOUT);
-	if (dd->jack_type == JACK_TYPE_DISCONNECTED)
-		set_android_switch_state(0);
-	else
-		set_android_switch_state(1);
 
 	ux500_ab8500_jack_report(value);
 

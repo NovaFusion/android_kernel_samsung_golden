@@ -15,7 +15,6 @@
 #include <asm/e820.h>
 #include <asm/setup.h>
 #include <asm/acpi.h>
-#include <asm/numa.h>
 #include <asm/xen/hypervisor.h>
 #include <asm/xen/hypercall.h>
 
@@ -464,7 +463,4 @@ void __init xen_arch_setup(void)
 	boot_option_idle_override = IDLE_HALT;
 
 	fiddle_vdso();
-#ifdef CONFIG_NUMA
-	numa_off = 1;
-#endif
 }

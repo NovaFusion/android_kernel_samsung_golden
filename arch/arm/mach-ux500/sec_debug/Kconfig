@@ -1,0 +1,71 @@
+config SAMSUNG_KERNEL_DEBUG
+        bool "Samsung Kernel Debugging Code"
+
+config SAMSUNG_ADD_GAFORENSICINFO
+	bool "Samsung GAF Debugging Feature"
+	help
+		Add additional information to the ram dump. This information
+		will be analized in GAF Tool.
+
+config SAMSUNG_PASS_PLATFORM_LOG_TO_KERNEL
+	bool "Samsung Pass Platform Log to Kernel"
+	help
+		This feature make a log message which is started with !@ is
+		displaye through printk function.
+
+config SAMSUNG_USE_SEC_LOG_BUF
+	bool "Samsung Use SEC_LOG_BUF"
+	help
+		This feature stores all serial log messages into the
+		SEC_LOG_BUF area.
+
+config SAMSUNG_USE_GETLOG
+	bool "Samsung getLog Debugging Feature"
+	depends on SAMSUNG_USE_SEC_LOG_BUF
+	help
+		Add a MARK string to the kernel log message indicating
+		starting addresses of 'FrameBuffer / printk Log buffer /
+		Platform log buffer. This feature is used to extract
+		debuggin information from log messages.
+
+config SAMSUNG_PANIC_DISPLAY_DEVICES
+	bool "Samsung Display device registers after Kernel Panic"
+	depends on SAMSUNG_KERNEL_DEBUG
+	help
+		This will enable communication with devices so that their
+		status maybe displayed.
+
+config SAMSUNG_PANIC_DISPLAY_PMIC
+	bool "Samsung Display PMIC registers after Kernel Panic"
+	depends on SAMSUNG_PANIC_DISPLAY_DEVICES
+	help
+		This will dump all the PMIC (Power Management IC) registers,
+		this maybe to log buf or direct to serial.
+
+config SAMSUNG_PANIC_DISPLAY_I2C_PERIPHS
+	bool "Samsung Display I2C Peripheral registers after Kernel Panic"
+	depends on SAMSUNG_PANIC_DISPLAY_DEVICES
+	help
+		This will dump I2C connected peripherals that are powered,
+		this maybe to log buf or direct to serial.
+
+config SAMSUNG_PANIC_DISPLAY_LSOF
+	bool "Display lsof information during Kernel Panic"
+	depends on SAMSUNG_PANIC_DISPLAY_DEVICES
+	help
+	  	This option enables display of lsof information during panic
+
+config SAMSUNG_PANIC_LCD_DISPLAY
+	bool "Display panic data on LCD"
+	help
+		This option enabled display, on the LCD, of panic information,
+		for debug without console connection.
+
+config SAMSUNG_EXTRA_DIE_ACTION
+	bool "Display extra panic info depends on keypress"
+	depends on SAMSUNG_KERNEL_DEBUG
+	default n
+	help
+		This option enabled display extra panic information,
+		for debug without console connection.
+

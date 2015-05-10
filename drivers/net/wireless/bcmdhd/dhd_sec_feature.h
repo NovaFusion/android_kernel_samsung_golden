@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Header file describing the internal (inter-module) DHD interfaces.
  *
  * Provides type definitions and function prototypes used to link the

@@ -58,10 +58,4 @@ config SENSORS_BMA254
 	  If you say yes here you get support for Bosch-Sensortec's
 	  BMA254 Acceleration Sensor
 
-config BMA254_SMART_ALERT
-	tristate "BMA254 Acceleration Sensor Driver"
-	depends on I2C
-	default n
-	help
-	This option enables smart alert
 

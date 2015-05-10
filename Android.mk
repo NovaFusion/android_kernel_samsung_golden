@@ -6,7 +6,7 @@ ifeq ($(TARGET_USE_ST_ERICSSON_KERNEL),true)
 # been built. Typical (only?) example: loadable kernel modules.
 .PHONY: build-kernel clean-kernel
 
-PRIVATE_KERNEL_ARGS := -C kernel LOCALVERSION=$(LOCALVERSION)
+PRIVATE_KERNEL_ARGS := -C kernel ARCH=arm CROSS_COMPILE=$(CROSS_COMPILE) LOCALVERSION=$(LOCALVERSION)
 
 PRIVATE_OUT := $(abspath $(PRODUCT_OUT)/root)
 

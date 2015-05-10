@@ -64,7 +64,7 @@
 #define FORCE_PRERECOVERY		0	/* enter pre recovery mode, if set */
 #define REBOOT_MODE			REBOOT_MODE_RECOVERY
 #define NATION_SEL			0	/* set nation specific configuration */
-#define DEBUG_LEVEL			1  /* set debug level, default 1 */
+#define DEBUG_LEVEL			CONFIG_SEC_DEBUG_LEVEL
 #define SET_DEFAULT_PARAM		0	/* set default param */
 #define BATT_CAPACITY			0	/* set initial battery capacity */
 #define FLASH_LOCK_STATUS		FLASH_UNLOCK

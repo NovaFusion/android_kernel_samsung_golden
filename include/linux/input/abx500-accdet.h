@@ -362,6 +362,5 @@ extern struct abx500_ad ab5500_accessory_det_callbacks;
 #ifdef CONFIG_INPUT_AB8500_ACCDET
 extern struct abx500_ad ab8500_accessory_det_callbacks;
 #endif
-extern void set_android_switch_state(int);
 
 #endif /* _ABx500_ACCDET_H */

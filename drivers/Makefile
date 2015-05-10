@@ -98,7 +98,6 @@ obj-$(CONFIG_CPU_FREQ)		+= cpufreq/
 obj-$(CONFIG_CPU_IDLE)		+= cpuidle/
 obj-$(CONFIG_MMC)		+= mmc/
 obj-$(CONFIG_MEMSTICK)		+= memstick/
-obj-y += exfat/
 obj-y				+= leds/
 obj-$(CONFIG_NEW_SENSORS)	+= sensor/
 obj-$(CONFIG_SWITCH)		+= switch/
@@ -130,10 +129,5 @@ obj-$(CONFIG_MODEM)		+= modem/
 obj-$(CONFIG_HWSPINLOCK)	+= hwspinlock/
 obj-y				+= samsung/
 obj-$(CONFIG_SAMSUNG_PHONE_SVNET)	+= phone_svn/
-obj-$(CONFIG_AUTHENTEC_VPNCLIENT_INTERCEPTOR) += interceptor/
 
 obj-$(CONFIG_BATTERY_SAMSUNG)	+= battery/
-
-ifeq (1, $(shell if [ -d ./drivers/exfat ]; then echo 1; fi))
-obj-y	+= exfat/
-endif

@@ -66,4 +66,3 @@ obj-$(CONFIG_SAMSUNG_JACK)	+= sec_jack.o
 obj-$(CONFIG_U8500_SIM_DETECT)	+= sim_detect.o
 obj-y				+= modem_audio/
 obj-$(CONFIG_USE_DPP2601)	+= projector/
-obj-$(CONFIG_GENERIC_BLN) += bln.o

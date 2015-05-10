@@ -2491,7 +2491,7 @@ S:	Maintained
 F:	drivers/net/eexpress.*
 
 ETHERNET BRIDGE
-M:	Stephen Hemminger <stephen@networkplumber.org>
+M:	Stephen Hemminger <shemminger@linux-foundation.org>
 L:	bridge@lists.linux-foundation.org
 L:	netdev@vger.kernel.org
 W:	http://www.linuxfoundation.org/en/Net:Bridge
@@ -4338,7 +4338,7 @@ S:	Supported
 F:	drivers/infiniband/hw/nes/
 
 NETEM NETWORK EMULATOR
-M:	Stephen Hemminger <stephen@networkplumber.org>
+M:	Stephen Hemminger <shemminger@linux-foundation.org>
 L:	netem@lists.linux-foundation.org
 S:	Maintained
 F:	net/sched/sch_netem.c
@@ -5258,7 +5258,7 @@ F:	Documentation/blockdev/ramdisk.txt
 F:	drivers/block/brd.c
 
 RANDOM NUMBER DRIVER
-M:	Theodore Ts'o" <tytso@mit.edu>
+M:	Matt Mackall <mpm@selenic.com>
 S:	Maintained
 F:	drivers/char/random.c
 
@@ -5790,7 +5790,7 @@ S:	Maintained
 F:	drivers/usb/misc/sisusbvga/
 
 SKGE, SKY2 10/100/1000 GIGABIT ETHERNET DRIVERS
-M:	Stephen Hemminger <stephen@networkplumber.org>
+M:	Stephen Hemminger <shemminger@linux-foundation.org>
 L:	netdev@vger.kernel.org
 S:	Maintained
 F:	drivers/net/skge.*
@@ -6051,8 +6051,7 @@ F:	arch/alpha/kernel/srm_env.c
 STABLE BRANCH
 M:	Greg Kroah-Hartman <greg@kroah.com>
 L:	stable@vger.kernel.org
-S:	Supported
-F:	Documentation/stable_kernel_rules.txt
+S:	Maintained
 
 STAGING SUBSYSTEM
 M:	Greg Kroah-Hartman <gregkh@suse.de>
@@ -6369,6 +6368,13 @@ M:	Evgeniy Dushistov <dushistov@mail.ru>
 S:	Maintained
 F:	Documentation/filesystems/ufs.txt
 F:	fs/ufs/
+
+UHID USERSPACE HID IO DRIVER:
+M:	David Herrmann <dh.herrmann@googlemail.com>
+L:	linux-input@vger.kernel.org
+S:	Maintained
+F:	drivers/hid/uhid.c
+F:	include/linux/uhid.h
 
 ULTRA-WIDEBAND (UWB) SUBSYSTEM:
 L:	linux-usb@vger.kernel.org

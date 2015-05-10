@@ -171,7 +171,6 @@ struct ab8505_iddet_platdata {
 
 
 extern struct ab8505_iddet_platdata iddet_adc_val_list;
-extern void set_android_switch_state(int state);
 /* For notification to usb driver for phy enable/disable */
 extern struct blocking_notifier_head micro_usb_switch_notifier;
 extern int micro_usb_register_usb_notifier(struct notifier_block *nb);

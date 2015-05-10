@@ -566,6 +566,14 @@ config LOG_BUF_SHIFT
 		     12 =>  4 KB
 
 #
+# SAMSUNG_LOG_BUF is the only Samsung Debug feature configured here. All other Samsung Product Features are  
+# configured in /android/kernel/arch/arm/mach-ux500/Kconfig
+#
+config SAMSUNG_LOG_BUF 
+	bool "Fixed 1MB Log Buffer Address"
+	---help---
+	  This option enables Fixed Physical RAM Address
+#
 # Architectures with an unreliable sched_clock() should select this:
 #
 config HAVE_UNSTABLE_SCHED_CLOCK

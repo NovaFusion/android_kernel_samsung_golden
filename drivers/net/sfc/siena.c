@@ -135,18 +135,6 @@ static void siena_remove_port(struct efx_nic *efx)
 	efx_nic_free_buffer(efx, &efx->stats_buffer);
 }
 
-void siena_prepare_flush(struct efx_nic *efx)
-{
-	if (efx->fc_disable++ == 0)
-		efx_mcdi_set_mac(efx);
-}
-
-void siena_finish_flush(struct efx_nic *efx)
-{
-	if (--efx->fc_disable == 0)
-		efx_mcdi_set_mac(efx);
-}
-
 static const struct efx_nic_register_test siena_register_tests[] = {
 	{ FR_AZ_ADR_REGION,
 	  EFX_OWORD32(0x0003FFFF, 0x0003FFFF, 0x0003FFFF, 0x0003FFFF) },
@@ -384,13 +372,14 @@ static void siena_remove_nic(struct efx_nic *efx)
 	efx->nic_data = NULL;
 }
 
-#define STATS_GENERATION_INVALID ((__force __le64)(-1))
+#define STATS_GENERATION_INVALID ((u64)(-1))
 
 static int siena_try_update_nic_stats(struct efx_nic *efx)
 {
-	__le64 *dma_stats;
+	u64 *dma_stats;
 	struct efx_mac_stats *mac_stats;
-	__le64 generation_start, generation_end;
+	u64 generation_start;
+	u64 generation_end;
 
 	mac_stats = &efx->mac_stats;
 	dma_stats = (u64 *)efx->stats_buffer.addr;
@@ -401,7 +390,7 @@ static int siena_try_update_nic_stats(struct efx_nic *efx)
 	rmb();
 
 #define MAC_STAT(M, D) \
-	mac_stats->M = le64_to_cpu(dma_stats[MC_CMD_MAC_ ## D])
+	mac_stats->M = dma_stats[MC_CMD_MAC_ ## D]
 
 	MAC_STAT(tx_bytes, TX_BYTES);
 	MAC_STAT(tx_bad_bytes, TX_BAD_BYTES);
@@ -471,8 +460,7 @@ static int siena_try_update_nic_stats(struct efx_nic *efx)
 	MAC_STAT(rx_internal_error, RX_INTERNAL_ERROR_PKTS);
 	mac_stats->rx_good_lt64 = 0;
 
-	efx->n_rx_nodesc_drop_cnt =
-		le64_to_cpu(dma_stats[MC_CMD_MAC_RX_NODESC_DROPS]);
+	efx->n_rx_nodesc_drop_cnt = dma_stats[MC_CMD_MAC_RX_NODESC_DROPS];
 
 #undef MAC_STAT
 
@@ -501,7 +489,7 @@ static void siena_update_nic_stats(struct efx_nic *efx)
 
 static void siena_start_nic_stats(struct efx_nic *efx)
 {
-	__le64 *dma_stats = efx->stats_buffer.addr;
+	u64 *dma_stats = (u64 *)efx->stats_buffer.addr;
 
 	dma_stats[MC_CMD_MAC_GENERATION_END] = STATS_GENERATION_INVALID;
 
@@ -602,8 +590,7 @@ const struct efx_nic_type siena_a0_nic_type = {
 	.reset = siena_reset_hw,
 	.probe_port = siena_probe_port,
 	.remove_port = siena_remove_port,
-	.prepare_flush = siena_prepare_flush,
-	.finish_flush = siena_finish_flush,
+	.prepare_flush = efx_port_dummy_op_void,
 	.update_stats = siena_update_nic_stats,
 	.start_stats = siena_start_nic_stats,
 	.stop_stats = siena_stop_nic_stats,

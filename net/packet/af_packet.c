@@ -866,6 +866,7 @@ static void tpacket_destruct_skb(struct sk_buff *skb)
 
 	if (likely(po->tx_ring.pg_vec)) {
 		ph = skb_shinfo(skb)->destructor_arg;
+		BUG_ON(__packet_get_status(po, ph) != TP_STATUS_SENDING);
 		BUG_ON(atomic_read(&po->tx_ring.pending) == 0);
 		atomic_dec(&po->tx_ring.pending);
 		__packet_set_status(po, ph, TP_STATUS_AVAILABLE);
@@ -1349,15 +1350,13 @@ static int packet_release(struct socket *sock)
 
 	packet_flush_mclist(sk);
 
-	if (po->rx_ring.pg_vec) {
-		memset(&req, 0, sizeof(req));
-		packet_set_ring(sk, &req, 1, 0);
-	}
+	memset(&req, 0, sizeof(req));
 
-	if (po->tx_ring.pg_vec) {
-		memset(&req, 0, sizeof(req));
+	if (po->rx_ring.pg_vec)
+		packet_set_ring(sk, &req, 1, 0);
+
+	if (po->tx_ring.pg_vec)
 		packet_set_ring(sk, &req, 1, 1);
-	}
 
 	synchronize_net();
 	/*
@@ -1767,11 +1766,12 @@ static int packet_getname_spkt(struct socket *sock, struct sockaddr *uaddr,
 		return -EOPNOTSUPP;
 
 	uaddr->sa_family = AF_PACKET;
-	memset(uaddr->sa_data, 0, sizeof(uaddr->sa_data));
 	rcu_read_lock();
 	dev = dev_get_by_index_rcu(sock_net(sk), pkt_sk(sk)->ifindex);
 	if (dev)
-		strlcpy(uaddr->sa_data, dev->name, sizeof(uaddr->sa_data));
+		strncpy(uaddr->sa_data, dev->name, 14);
+	else
+		memset(uaddr->sa_data, 0, 14);
 	rcu_read_unlock();
 	*uaddr_len = sizeof(*uaddr);
 

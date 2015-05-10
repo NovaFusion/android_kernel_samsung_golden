@@ -362,9 +362,8 @@ uint dhd_download_fw_on_driverload = TRUE;
 /* Definitions to provide path to the firmware and nvram
  * example nvram_path[MOD_PARAM_PATHLEN]="/projects/wlan/nvram.txt"
  */
-
-char firmware_path[MOD_PARAM_PATHLEN]="/system/etc/wifi/bcmdhd_sta.bin";
-char nvram_path[MOD_PARAM_PATHLEN]="/system/etc/wifi/nvram_net.txt";
+char firmware_path[MOD_PARAM_PATHLEN] = "/system/etc/wifi/bcmdhd_sta.bin";
+char nvram_path[MOD_PARAM_PATHLEN] = "/system/etc/wifi/nvram_net.txt";
 
 /* information string to keep firmware, chio, cheip version info visiable from log */
 char info_string[MOD_PARAM_INFOLEN];
@@ -517,6 +516,7 @@ uint dhd_pktgen_len = 0;
 module_param(dhd_pktgen_len, uint, 0);
 #endif /* SDTEST */
 
+/* Version string to report */
 static char dhd_version[] = "Dongle Host Driver, version " EPI_VERSION_STR;
 
 static void dhd_net_if_lock_local(dhd_info_t *dhd);
@@ -3973,7 +3973,6 @@ dhd_preinit_ioctls(dhd_pub_t *dhd)
 #if defined(PASS_IPV4_SUSPEND)
 	dhd->pktfilter_count = 5;
 	dhd->pktfilter[4] = "104 0 0 0 0xFFFFFF 0x01005E";
-	dhd->pktfilter[4] = NULL;
 #endif
 #endif /* GAN_LITE_NAT_KEEPALIVE_FILTER */
 #ifdef PASS_ARP_PACKET
