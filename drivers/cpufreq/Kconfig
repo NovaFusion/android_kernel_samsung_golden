@@ -109,6 +109,18 @@ config CPU_FREQ_DEFAULT_GOV_INTERACTIVE
 	  loading your cpufreq low-level hardware driver, using the
 	  'interactive' governor for latency-sensitive workloads.
 
+config CPU_FREQ_DEFAULT_GOV_PEGASUSQ
+        bool "pegasusq"
+        select CPU_FREQ_GOV_PEGASUSQ
+        help
+         Use the CPUFreq governor 'pegasusq' as default.
+
+config CPU_FREQ_DEFAULT_GOV_ABYSSPLUG
+        bool "abyssplug"
+        select CPU_FREQ_GOV_ABYSSPLUG
+        help
+         Use the CPUFreq governor 'abyssplug' as default.
+
 config CPU_FREQ_DEFAULT_GOV_ZZMOOVE
 	bool "zzmoove"
 	select CPU_FREQ_GOV_ZZMOOVE
@@ -192,6 +204,18 @@ config CPU_FREQ_GOV_INTERACTIVE
 	  For details, take a look at linux/Documentation/cpu-freq.
 
 	  If in doubt, say N.
+
+config CPU_FREQ_GOV_PEGASUSQ
+    tristate "'pegasusq' cpufreq policy governor"
+    depends on CPU_FREQ
+    help
+	  Very good governor.
+
+config CPU_FREQ_GOV_ABYSSPLUG
+    tristate "'abyssplug' cpufreq governor"
+    depends on CPU_FREQ
+    help
+	  'lulzactiveq' - hotplug mechanism added in lulzactive
 
 config CPU_FREQ_GOV_CONSERVATIVE
 	tristate "'conservative' cpufreq governor"

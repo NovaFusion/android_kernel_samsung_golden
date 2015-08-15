@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2009-2011, Dan Magenheimer, Oracle Corp.
  *
- * The primary purpose of Transcedent Memory ("tmem") is to map object-oriented
+ * The primary purpose of Transcendent Memory ("tmem") is to map object-oriented
  * "handles" (triples containing a pool id, and object id, and an index), to
  * pages in a page-accessible memory (PAM).  Tmem references the PAM pages via
  * an abstract "pampd" (PAM page-descriptor), which can be operated on by a
@@ -72,31 +72,47 @@ void tmem_register_pamops(struct tmem_pamops *m)
  * the hashbucket lock must be held.
  */
 
-/* searches for object==oid in pool, returns locked object if found */
-static struct tmem_obj *tmem_obj_find(struct tmem_hashbucket *hb,
-					struct tmem_oid *oidp)
+static struct tmem_obj
+*__tmem_obj_find(struct tmem_hashbucket*hb, struct tmem_oid *oidp,
+		 struct rb_node **parent, struct rb_node ***link)
 {
-	struct rb_node *rbnode;
-	struct tmem_obj *obj;
+	struct rb_node *_parent = NULL, **rbnode;
+	struct tmem_obj *obj = NULL;
 
-	rbnode = hb->obj_rb_root.rb_node;
-	while (rbnode) {
-		BUG_ON(RB_EMPTY_NODE(rbnode));
-		obj = rb_entry(rbnode, struct tmem_obj, rb_tree_node);
+	rbnode = &hb->obj_rb_root.rb_node;
+	while (*rbnode) {
+		BUG_ON(RB_EMPTY_NODE(*rbnode));
+		_parent = *rbnode;
+		obj = rb_entry(*rbnode, struct tmem_obj,
+			       rb_tree_node);
 		switch (tmem_oid_compare(oidp, &obj->oid)) {
 		case 0: /* equal */
 			goto out;
 		case -1:
-			rbnode = rbnode->rb_left;
+			rbnode = &(*rbnode)->rb_left;
 			break;
 		case 1:
-			rbnode = rbnode->rb_right;
+			rbnode = &(*rbnode)->rb_right;
 			break;
 		}
 	}
+
+	if (parent)
+		*parent = _parent;
+	if (link)
+		*link = rbnode;
+
 	obj = NULL;
 out:
 	return obj;
+}
+
+
+/* searches for object==oid in pool, returns locked object if found */
+static struct tmem_obj *tmem_obj_find(struct tmem_hashbucket *hb,
+					struct tmem_oid *oidp)
+{
+	return __tmem_obj_find(hb, oidp, NULL, NULL);
 }
 
 static void tmem_pampd_destroy_all_in_obj(struct tmem_obj *);
@@ -131,8 +147,7 @@ static void tmem_obj_init(struct tmem_obj *obj, struct tmem_hashbucket *hb,
 					struct tmem_oid *oidp)
 {
 	struct rb_root *root = &hb->obj_rb_root;
-	struct rb_node **new = &(root->rb_node), *parent = NULL;
-	struct tmem_obj *this;
+	struct rb_node **new = NULL, *parent = NULL;
 
 	BUG_ON(pool == NULL);
 	atomic_inc(&pool->obj_count);
@@ -142,23 +157,12 @@ static void tmem_obj_init(struct tmem_obj *obj, struct tmem_hashbucket *hb,
 	obj->oid = *oidp;
 	obj->objnode_count = 0;
 	obj->pampd_count = 0;
+	(*tmem_pamops.new_obj)(obj);
 	SET_SENTINEL(obj, OBJ);
-	while (*new) {
-		BUG_ON(RB_EMPTY_NODE(*new));
-		this = rb_entry(*new, struct tmem_obj, rb_tree_node);
-		parent = *new;
-		switch (tmem_oid_compare(oidp, &this->oid)) {
-		case 0:
-			BUG(); /* already present; should never happen! */
-			break;
-		case -1:
-			new = &(*new)->rb_left;
-			break;
-		case 1:
-			new = &(*new)->rb_right;
-			break;
-		}
-	}
+
+	if (__tmem_obj_find(hb, oidp, &parent, &new))
+		BUG();
+
 	rb_link_node(&obj->rb_tree_node, parent, new);
 	rb_insert_color(&obj->rb_tree_node, root);
 }
@@ -274,7 +278,7 @@ static void tmem_objnode_free(struct tmem_objnode *objnode)
 /*
  * lookup index in object and return associated pampd (or NULL if not found)
  */
-static void *tmem_pampd_lookup_in_obj(struct tmem_obj *obj, uint32_t index)
+static void **__tmem_pampd_lookup_in_obj(struct tmem_obj *obj, uint32_t index)
 {
 	unsigned int height, shift;
 	struct tmem_objnode **slot = NULL;
@@ -303,7 +307,31 @@ static void *tmem_pampd_lookup_in_obj(struct tmem_obj *obj, uint32_t index)
 		height--;
 	}
 out:
+	return slot != NULL ? (void **)slot : NULL;
+}
+
+static void *tmem_pampd_lookup_in_obj(struct tmem_obj *obj, uint32_t index)
+{
+	struct tmem_objnode **slot;
+
+	slot = (struct tmem_objnode **)__tmem_pampd_lookup_in_obj(obj, index);
 	return slot != NULL ? *slot : NULL;
+}
+
+static void *tmem_pampd_replace_in_obj(struct tmem_obj *obj, uint32_t index,
+					void *new_pampd)
+{
+	struct tmem_objnode **slot;
+	void *ret = NULL;
+
+	slot = (struct tmem_objnode **)__tmem_pampd_lookup_in_obj(obj, index);
+	if ((slot != NULL) && (*slot != NULL)) {
+		void *old_pampd = *(void **)slot;
+		*(void **)slot = new_pampd;
+		(*tmem_pamops.free)(old_pampd, obj->pool, NULL, 0);
+		ret = new_pampd;
+	}
+	return ret;
 }
 
 static int tmem_pampd_add_to_obj(struct tmem_obj *obj, uint32_t index,
@@ -456,7 +484,7 @@ static void tmem_objnode_node_destroy(struct tmem_obj *obj,
 			if (ht == 1) {
 				obj->pampd_count--;
 				(*tmem_pamops.free)(objnode->slots[i],
-								obj->pool);
+						obj->pool, NULL, 0);
 				objnode->slots[i] = NULL;
 				continue;
 			}
@@ -473,7 +501,7 @@ static void tmem_pampd_destroy_all_in_obj(struct tmem_obj *obj)
 		return;
 	if (obj->objnode_tree_height == 0) {
 		obj->pampd_count--;
-		(*tmem_pamops.free)(obj->objnode_tree_root, obj->pool);
+		(*tmem_pamops.free)(obj->objnode_tree_root, obj->pool, NULL, 0);
 	} else {
 		tmem_objnode_node_destroy(obj, obj->objnode_tree_root,
 					obj->objnode_tree_height);
@@ -481,6 +509,7 @@ static void tmem_pampd_destroy_all_in_obj(struct tmem_obj *obj)
 		obj->objnode_tree_height = 0;
 	}
 	obj->objnode_tree_root = NULL;
+	(*tmem_pamops.free_obj)(obj->pool, obj);
 }
 
 /*
@@ -503,15 +532,13 @@ static void tmem_pampd_destroy_all_in_obj(struct tmem_obj *obj)
  * always flushes for simplicity.
  */
 int tmem_put(struct tmem_pool *pool, struct tmem_oid *oidp, uint32_t index,
-		struct page *page)
+		char *data, size_t size, bool raw, bool ephemeral)
 {
 	struct tmem_obj *obj = NULL, *objfound = NULL, *objnew = NULL;
 	void *pampd = NULL, *pampd_del = NULL;
 	int ret = -ENOMEM;
-	bool ephemeral;
 	struct tmem_hashbucket *hb;
 
-	ephemeral = is_ephemeral(pool);
 	hb = &pool->hashbucket[tmem_oid_hash(oidp)];
 	spin_lock(&hb->lock);
 	obj = objfound = tmem_obj_find(hb, oidp);
@@ -521,7 +548,7 @@ int tmem_put(struct tmem_pool *pool, struct tmem_oid *oidp, uint32_t index,
 			/* if found, is a dup put, flush the old one */
 			pampd_del = tmem_pampd_delete_from_obj(obj, index);
 			BUG_ON(pampd_del != pampd);
-			(*tmem_pamops.free)(pampd, pool);
+			(*tmem_pamops.free)(pampd, pool, oidp, index);
 			if (obj->pampd_count == 0) {
 				objnew = obj;
 				objfound = NULL;
@@ -538,7 +565,8 @@ int tmem_put(struct tmem_pool *pool, struct tmem_oid *oidp, uint32_t index,
 	}
 	BUG_ON(obj == NULL);
 	BUG_ON(((objnew != obj) && (objfound != obj)) || (objnew == objfound));
-	pampd = (*tmem_pamops.create)(obj->pool, &obj->oid, index, page);
+	pampd = (*tmem_pamops.create)(data, size, raw, ephemeral,
+					obj->pool, &obj->oid, index);
 	if (unlikely(pampd == NULL))
 		goto free;
 	ret = tmem_pampd_add_to_obj(obj, index, pampd);
@@ -551,7 +579,7 @@ delete_and_free:
 	(void)tmem_pampd_delete_from_obj(obj, index);
 free:
 	if (pampd)
-		(*tmem_pamops.free)(pampd, pool);
+		(*tmem_pamops.free)(pampd, pool, NULL, 0);
 	if (objnew) {
 		tmem_obj_free(objnew, hb);
 		(*tmem_hostops.obj_free)(objnew, pool);
@@ -573,41 +601,52 @@ out:
  * "put" done with the same handle).
 
  */
-int tmem_get(struct tmem_pool *pool, struct tmem_oid *oidp,
-				uint32_t index, struct page *page)
+int tmem_get(struct tmem_pool *pool, struct tmem_oid *oidp, uint32_t index,
+		char *data, size_t *size, bool raw, int get_and_free)
 {
 	struct tmem_obj *obj;
 	void *pampd;
 	bool ephemeral = is_ephemeral(pool);
-	uint32_t ret = -1;
+	int ret = -1;
 	struct tmem_hashbucket *hb;
+	bool free = (get_and_free == 1) || ((get_and_free == 0) && ephemeral);
+	bool lock_held = false;
 
 	hb = &pool->hashbucket[tmem_oid_hash(oidp)];
 	spin_lock(&hb->lock);
+	lock_held = true;
 	obj = tmem_obj_find(hb, oidp);
 	if (obj == NULL)
 		goto out;
-	ephemeral = is_ephemeral(pool);
-	if (ephemeral)
+	if (free)
 		pampd = tmem_pampd_delete_from_obj(obj, index);
 	else
 		pampd = tmem_pampd_lookup_in_obj(obj, index);
 	if (pampd == NULL)
 		goto out;
-	ret = (*tmem_pamops.get_data)(page, pampd, pool);
-	if (ret < 0)
-		goto out;
-	if (ephemeral) {
-		(*tmem_pamops.free)(pampd, pool);
+	if (free) {
 		if (obj->pampd_count == 0) {
 			tmem_obj_free(obj, hb);
 			(*tmem_hostops.obj_free)(obj, pool);
 			obj = NULL;
 		}
 	}
+	if (tmem_pamops.is_remote(pampd)) {
+		lock_held = false;
+		spin_unlock(&hb->lock);
+	}
+	if (free)
+		ret = (*tmem_pamops.get_data_and_free)(
+				data, size, raw, pampd, pool, oidp, index);
+	else
+		ret = (*tmem_pamops.get_data)(
+				data, size, raw, pampd, pool, oidp, index);
+	if (ret < 0)
+		goto out;
 	ret = 0;
 out:
-	spin_unlock(&hb->lock);
+	if (lock_held)
+		spin_unlock(&hb->lock);
 	return ret;
 }
 
@@ -632,13 +671,37 @@ int tmem_flush_page(struct tmem_pool *pool,
 	pampd = tmem_pampd_delete_from_obj(obj, index);
 	if (pampd == NULL)
 		goto out;
-	(*tmem_pamops.free)(pampd, pool);
+	(*tmem_pamops.free)(pampd, pool, oidp, index);
 	if (obj->pampd_count == 0) {
 		tmem_obj_free(obj, hb);
 		(*tmem_hostops.obj_free)(obj, pool);
 	}
 	ret = 0;
 
+out:
+	spin_unlock(&hb->lock);
+	return ret;
+}
+
+/*
+ * If a page in tmem matches the handle, replace the page so that any
+ * subsequent "get" gets the new page.  Returns 0 if
+ * there was a page to replace, else returns -1.
+ */
+int tmem_replace(struct tmem_pool *pool, struct tmem_oid *oidp,
+			uint32_t index, void *new_pampd)
+{
+	struct tmem_obj *obj;
+	int ret = -1;
+	struct tmem_hashbucket *hb;
+
+	hb = &pool->hashbucket[tmem_oid_hash(oidp)];
+	spin_lock(&hb->lock);
+	obj = tmem_obj_find(hb, oidp);
+	if (obj == NULL)
+		goto out;
+	new_pampd = tmem_pampd_replace_in_obj(obj, index, new_pampd);
+	ret = (*tmem_pamops.replace_in_obj)(new_pampd, obj);
 out:
 	spin_unlock(&hb->lock);
 	return ret;

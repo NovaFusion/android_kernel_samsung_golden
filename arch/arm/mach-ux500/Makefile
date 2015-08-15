@@ -117,4 +117,5 @@ obj-$(CONFIG_SAMSUNG_USE_SEC_LOG_BUF)	+= sec_log_buf.o
 obj-$(CONFIG_SAMSUNG_ADD_GAFORENSICINFO)+= sec_gaf.o
 obj-$(CONFIG_SAMSUNG_USE_GETLOG)	+= sec_getlog.o
 obj-$(CONFIG_SAMSUNG_USE_LOGGER_ADDON)	+= sec_logger.o
+obj-$(CONFIG_FORCE_FAST_CHARGE) += fastchg.o
 

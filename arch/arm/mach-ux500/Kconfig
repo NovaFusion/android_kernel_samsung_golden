@@ -451,6 +451,13 @@ config AB8505_SMPL
         help
           This enables 'Sudden Moment Power Loss' feature.
 
+config FORCE_FAST_CHARGE
+	bool "Force AC charge mode at will"
+	default n
+	help
+	  A simple sysfs interface to force adapters that
+	  are detected as USB to charge as AC.
+
 source "arch/arm/mach-ux500/Kconfig-arch"
 source "arch/arm/mach-ux500/pm/Kconfig"
 source "arch/arm/mach-ux500/test/Kconfig"
