@@ -660,6 +660,37 @@ static int __init parse_tag_revision(const struct tag *tag)
 
 __tagtable(ATAG_REVISION, parse_tag_revision);
 
+#if defined(CONFIG_MACH_SAMSUNG_UX500)
+static int __init fixup_lpm_cmdline()
+{
+	char *lpm_pointer;
+	char buffer[COMMAND_LINE_SIZE];
+
+	/* device has started in normal mode */
+	lpm_pointer = strstr(default_command_line, " lpm_boot=0");
+
+	if (lpm_pointer != NULL) {
+		strlcpy(buffer, lpm_pointer + 11, COMMAND_LINE_SIZE);
+		strlcpy(lpm_pointer, buffer, COMMAND_LINE_SIZE);
+
+		return 1;
+	}
+
+	/* device has started in charger mode */
+	lpm_pointer = strstr(default_command_line, "lpm_boot=1");
+
+	if (lpm_pointer != NULL) {
+		strlcpy(buffer, lpm_pointer + 10, COMMAND_LINE_SIZE);
+		strlcpy(lpm_pointer, "androidboot.mode=charger", COMMAND_LINE_SIZE);
+		strlcpy(lpm_pointer + 24, buffer, COMMAND_LINE_SIZE);
+
+		return 1;
+	}
+
+	return 0;
+}
+#endif
+
 static int __init parse_tag_cmdline(const struct tag *tag)
 {
 #if defined(CONFIG_CMDLINE_EXTEND)
@@ -671,6 +702,9 @@ static int __init parse_tag_cmdline(const struct tag *tag)
 #else
 	strlcpy(default_command_line, tag->u.cmdline.cmdline,
 		COMMAND_LINE_SIZE);
+#endif
+#if defined(CONFIG_MACH_SAMSUNG_UX500)
+	fixup_lpm_cmdline();
 #endif
 	return 0;
 }
