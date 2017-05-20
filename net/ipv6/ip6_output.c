@@ -388,6 +388,22 @@ static int ip6_forward_proxy_check(struct sk_buff *skb)
 	return 0;
 }
 
+static int rt6_validate_source(struct sk_buff *skb, char mode)
+{
+	struct rt6_info *rt;
+	struct ipv6hdr *hdr = ipv6_hdr(skb);
+	if (mode == 0)
+		return 0;
+	rt = rt6_lookup(dev_net(skb->dev), &hdr->saddr, NULL, 0, 0);
+	if (rt != NULL) {
+		if ((mode >= 2) && rt->rt6i_idev->dev)
+			return 0;
+		if ((mode == 1) && (rt->rt6i_idev->dev == skb->dev))
+			return 0;
+	}
+	return -1;
+}
+
 static inline int ip6_forward_finish(struct sk_buff *skb)
 {
 	return dst_output(skb);
@@ -398,6 +414,7 @@ int ip6_forward(struct sk_buff *skb)
 	struct dst_entry *dst = skb_dst(skb);
 	struct ipv6hdr *hdr = ipv6_hdr(skb);
 	struct inet6_skb_parm *opt = IP6CB(skb);
+	struct inet6_dev *idev = NULL;
 	struct net *net = dev_net(dst->dev);
 	struct neighbour *n;
 	u32 mtu;
@@ -415,6 +432,24 @@ int ip6_forward(struct sk_buff *skb)
 
 	if (skb->pkt_type != PACKET_HOST)
 		goto drop;
+
+	idev = in6_dev_get(skb->dev);
+	if (!idev) {
+		printk(KERN_WARNING "idev error for rp_filter\n");
+		goto error;
+	}
+
+	if (rt6_validate_source(skb,
+				max(net->ipv6.devconf_all->rp_filter,
+				    idev->cnf.rp_filter)) < 0) {
+		printk(KERN_WARNING
+				"rp_filter: packet refused on %s, invalid src %pI6 (dst: %pI6)",
+				skb->dev->name,
+				&hdr->saddr,
+				&hdr->daddr
+		      );
+		goto drop;
+	}
 
 	skb_forward_csum(skb);
 
